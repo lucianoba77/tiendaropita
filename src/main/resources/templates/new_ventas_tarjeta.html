@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva Venta Tarjeta</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Nueva Venta con Tarjeta</h1>
+        <p>Selecciona el cliente, cuotas y coeficiente. Luego podras agregar los items a la venta.</p>
+        <form th:action="@{/tienda/ventas/save/tarjeta}" method="post">
+            <div class="form-group">
+                <label>Cliente</label>
+                <select name="clienteId" required>
+                    <option th:each="cliente : ${clientes}" th:value="${cliente.id}"
+                            th:text="${cliente.razonSocial}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad de Cuotas</label>
+                <input type="number" name="cantidadCuotas" min="1" value="3" required />
+            </div>
+            <div class="form-group">
+                <label>Coeficiente</label>
+                <input type="number" name="coeficiente" step="0.0001" min="0" value="0.01" required />
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-success">Crear Venta</button>
+                <a class="btn btn-light" th:href="@{/tienda/ventas/list}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

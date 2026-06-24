@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detalle de Venta</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Venta #<span th:text="${venta.id}">1</span></h1>
+        <p>
+            <strong>Tipo:</strong> <span th:text="${venta.class.simpleName}">Tipo</span> &nbsp;|&nbsp;
+            <strong>Fecha:</strong> <span th:text="${#dates.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</span> &nbsp;|&nbsp;
+            <strong>Cliente:</strong> <span th:text="${venta.cliente != null ? venta.cliente.razonSocial : '-'}">Cliente</span>
+        </p>
+        <p th:if="${venta.class.simpleName == 'VentaTarjeta'}">
+            <strong>Cuotas:</strong> <span th:text="${venta.cantidadCuotas}">0</span> &nbsp;|&nbsp;
+            <strong>Coeficiente:</strong> <span th:text="${venta.coeficiente}">0</span>
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Items</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Prenda</th>
+                <th class="text-right">Precio Unitario</th>
+                <th>Cantidad</th>
+                <th class="text-right">Importe</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${venta.items}">
+                <td th:text="${item.id}">1</td>
+                <td th:text="${item.prenda != null ? item.prenda.descripcion : '-'}">Prenda</td>
+                <td class="text-right"
+                    th:text="${item.prenda != null ? #numbers.formatDecimal(item.prenda.precioVenta(), 1, 2, 'COMMA') : '0,00'}">0,00</td>
+                <td>
+                    <form th:action="@{'/tienda/ventas/' + ${venta.id} + '/items/' + ${item.id} + '/update'}"
+                          method="post" style="display:flex; gap:6px; align-items:center;">
+                        <input type="number" name="cantidad" min="1" th:value="${item.cantidad}" style="width:80px;" />
+                        <button type="submit" class="btn btn-primary btn-sm">Modificar</button>
+                    </form>
+                </td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(item.importe(), 1, 2, 'COMMA')}">0,00</td>
+                <td>
+                    <a class="btn btn-danger btn-sm"
+                       th:href="@{'/tienda/ventas/' + ${venta.id} + '/items/' + ${item.id} + '/delete'}"
+                       onclick="return confirm('¿Quitar el item?');">Quitar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(venta.items)}">
+                <td colspan="6">La venta no tiene items.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Agregar Item</h2>
+        <form th:action="@{'/tienda/ventas/' + ${venta.id} + '/items/add'}" method="post">
+            <div class="form-group">
+                <label>Prenda</label>
+                <select name="prendaId" required>
+                    <option th:each="prenda : ${prendas}" th:value="${prenda.id}"
+                            th:text="${prenda.descripcion + ' (' + #numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA') + ')'}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" min="1" value="1" required />
+            </div>
+            <button type="submit" class="btn btn-success">Agregar Item</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <table>
+            <tr>
+                <th class="text-right">Importe Bruto</th>
+                <td class="text-right" th:text="${#numbers.formatDecimal(venta.importeBruto(), 1, 2, 'COMMA')}">0,00</td>
+            </tr>
+            <tr>
+                <th class="text-right">Total (con recargo/descuento)</th>
+                <td class="text-right" th:text="${#numbers.formatDecimal(venta.calcularTotal(), 1, 2, 'COMMA')}">0,00</td>
+            </tr>
+        </table>
+        <p style="margin-top:18px;"><a class="back" th:href="@{/tienda/ventas/list}">&larr; Volver al listado</a></p>
+    </div>
+</div>
+</body>
+</html>

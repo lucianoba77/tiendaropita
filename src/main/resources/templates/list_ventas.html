@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Listado de Ventas</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="toolbar">
+            <h1>Listado de Ventas</h1>
+            <div class="actions">
+                <a class="btn btn-success" th:href="@{/tienda/ventas/new/efectivo}">+ Venta Efectivo</a>
+                <a class="btn btn-primary" th:href="@{/tienda/ventas/new/tarjeta}">+ Venta Tarjeta</a>
+            </div>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th class="text-right">Importe Bruto</th>
+                <th class="text-right">Total</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="venta : ${listVentas}">
+                <td th:text="${venta.id}">1</td>
+                <td th:text="${#dates.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</td>
+                <td th:text="${venta.cliente != null ? venta.cliente.razonSocial : '-'}">Cliente</td>
+                <td th:text="${venta.class.simpleName}">Tipo</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(venta.importeBruto(), 1, 2, 'COMMA')}">0,00</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(venta.calcularTotal(), 1, 2, 'COMMA')}">0,00</td>
+                <td class="actions">
+                    <a class="btn btn-primary btn-sm" th:href="@{'/tienda/ventas/show/' + ${venta.id}}">Ver</a>
+                    <a class="btn btn-danger btn-sm" th:href="@{'/tienda/ventas/delete/' + ${venta.id}}"
+                       onclick="return confirm('¿Eliminar la venta?');">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(listVentas)}">
+                <td colspan="7">No hay ventas cargadas.</td>
+            </tr>
+            </tbody>
+        </table>
+        <p style="margin-top:18px;"><a class="back" th:href="@{/}">&larr; Volver al menu</a></p>
+    </div>
+</div>
+</body>
+</html>

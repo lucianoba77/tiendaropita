@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ganancias del Dia</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Calcular Ganancias del Dia</h1>
+        <p>Las ganancias del dia son la suma de los totales de todas las ventas de esa fecha.</p>
+        <form th:action="@{/tienda/negocio/ganancias}" method="get">
+            <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" name="fecha"
+                       th:value="${fecha != null ? #dates.format(fecha, 'yyyy-MM-dd') : ''}" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Calcular</button>
+        </form>
+    </div>
+
+    <div class="card" th:if="${ganancias != null}">
+        <h2>Resultado</h2>
+        <p>
+            Ganancias del <strong th:text="${#dates.format(fecha, 'dd/MM/yyyy')}">fecha</strong>:
+            <strong style="font-size:1.3em;"
+                    th:text="'$ ' + ${#numbers.formatDecimal(ganancias, 1, 2, 'COMMA')}">$ 0,00</strong>
+        </p>
+        <table>
+            <thead>
+            <tr>
+                <th>Venta ID</th>
+                <th>Tipo</th>
+                <th>Cliente</th>
+                <th class="text-right">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="venta : ${ventas}">
+                <td th:text="${venta.id}">1</td>
+                <td th:text="${venta.class.simpleName}">Tipo</td>
+                <td th:text="${venta.cliente != null ? venta.cliente.razonSocial : '-'}">Cliente</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(venta.calcularTotal(), 1, 2, 'COMMA')}">0,00</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(ventas)}">
+                <td colspan="4">No hay ventas para esa fecha.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

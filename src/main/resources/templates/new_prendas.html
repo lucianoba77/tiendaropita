@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nueva Prenda</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Nueva Prenda</h1>
+        <form th:action="@{/tienda/prendas/save}" th:object="${prenda}" method="post">
+            <div class="form-group">
+                <label>Descripcion</label>
+                <input type="text" th:field="*{descripcion}" required />
+            </div>
+            <div class="form-group">
+                <label>Precio Base</label>
+                <input type="number" step="0.01" min="0" th:field="*{precioBase}" required />
+            </div>
+            <div class="form-group">
+                <label>Tipo de Prenda</label>
+                <select th:field="*{tipoPrenda}">
+                    <option th:each="tipo : ${tipos}" th:value="${tipo}" th:text="${tipo}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <select th:field="*{estadoPrenda}">
+                    <option th:each="estado : ${estados}" th:value="${estado}" th:text="${estado}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Valor Promocion (solo para estado PROMOCION)</label>
+                <input type="number" step="0.01" min="0" th:field="*{valorPromocion}" />
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <a class="btn btn-light" th:href="@{/tienda/prendas/list}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

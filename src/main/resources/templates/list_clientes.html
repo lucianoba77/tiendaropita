@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Listado de Clientes</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="toolbar">
+            <h1>Listado de Clientes</h1>
+            <a class="btn btn-success" th:href="@{/tienda/clientes/new}">+ Nuevo Cliente</a>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cliente : ${listClientes}">
+                <td th:text="${cliente.id}">1</td>
+                <td th:text="${cliente.nombre}">Nombre</td>
+                <td th:text="${cliente.apellido}">Apellido</td>
+                <td class="actions">
+                    <a class="btn btn-primary btn-sm" th:href="@{'/tienda/clientes/edit/' + ${cliente.id}}">Editar</a>
+                    <a class="btn btn-danger btn-sm" th:href="@{'/tienda/clientes/delete/' + ${cliente.id}}"
+                       onclick="return confirm('¿Eliminar el cliente?');">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(listClientes)}">
+                <td colspan="4">No hay clientes cargados.</td>
+            </tr>
+            </tbody>
+        </table>
+        <p style="margin-top:18px;"><a class="back" th:href="@{/}">&larr; Volver al menu</a></p>
+    </div>
+</div>
+</body>
+</html>

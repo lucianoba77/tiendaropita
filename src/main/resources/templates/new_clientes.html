@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nuevo Cliente</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Nuevo Cliente</h1>
+        <form th:action="@{/tienda/clientes/save}" th:object="${cliente}" method="post">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" th:field="*{nombre}" required />
+            </div>
+            <div class="form-group">
+                <label>Apellido</label>
+                <input type="text" th:field="*{apellido}" required />
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <a class="btn btn-light" th:href="@{/tienda/clientes/list}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

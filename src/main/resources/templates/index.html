@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tienda Ropita</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Menu Principal</h1>
+        <p>Sistema de gestion de la Tienda Ropita - Diseno de Sistemas</p>
+        <ul class="menu-list">
+            <li><a th:href="@{/tienda/prendas/list}">Listado de prendas</a></li>
+            <li><a th:href="@{/tienda/clientes/list}">Listado de clientes</a></li>
+            <li><a th:href="@{/tienda/ventas/list}">Listado de ventas</a></li>
+            <li><a th:href="@{/tienda/negocio/ganancias}">Calcular ganancias del dia</a></li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>
