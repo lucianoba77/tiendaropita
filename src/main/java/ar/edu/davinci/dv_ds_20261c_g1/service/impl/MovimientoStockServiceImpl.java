@@ -3,6 +3,7 @@ package ar.edu.davinci.dv_ds_20261c_g1.service.impl;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +50,7 @@ public class MovimientoStockServiceImpl implements MovimientoStockService {
                 .referenciaVentaId(referenciaVentaId)
                 .observacion(observacion)
                 .build();
-        movimientoStockRepository.save(movimiento);
+        movimientoStockRepository.save(Objects.requireNonNull(movimiento));
     }
 
     @Override

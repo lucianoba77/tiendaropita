@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,19 +45,20 @@ class NegocioServiceImplTest {
     void calcularResumenDelDiaIncluyeDesgloseYPrendaMasVendida() {
         LocalDate hoy = LocalDate.now();
 
-        Cliente cliente = clienteRepository.save(Cliente.builder().nombre("Juan").apellido("Perez").build());
-        Prenda remera = prendaRepository.save(Prenda.builder()
+        Cliente cliente = Objects.requireNonNull(clienteRepository.save(
+                Cliente.builder().nombre("Juan").apellido("Perez").build()));
+        Prenda remera = Objects.requireNonNull(prendaRepository.save(Prenda.builder()
                 .descripcion("Remera")
                 .precioBase(new BigDecimal("100.00"))
                 .tipoPrenda(TipoPrenda.CAMISA)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
-        Prenda pantalon = prendaRepository.save(Prenda.builder()
+                .build()));
+        Prenda pantalon = Objects.requireNonNull(prendaRepository.save(Prenda.builder()
                 .descripcion("Pantalon")
                 .precioBase(new BigDecimal("200.00"))
                 .tipoPrenda(TipoPrenda.PANTALON)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
+                .build()));
 
         List<Item> itemsEfectivo = new ArrayList<>();
         itemsEfectivo.add(Item.builder().prenda(remera).cantidad(3).build());

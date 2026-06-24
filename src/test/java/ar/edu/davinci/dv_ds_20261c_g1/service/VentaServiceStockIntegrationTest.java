@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,34 +43,32 @@ class VentaServiceStockIntegrationTest {
     @Autowired
     private VentaRepository ventaRepository;
 
-    private Long clienteId;
     private Long prendaId;
     private Long ventaId;
 
     @BeforeEach
     void setUp() throws BusinessException {
-        Cliente cliente = clienteRepository.save(Cliente.builder()
+        Cliente cliente = Objects.requireNonNull(clienteRepository.save(Cliente.builder()
                 .nombre("Ana")
                 .apellido("Test")
-                .build());
+                .build()));
 
-        Prenda prenda = prendaRepository.save(Prenda.builder()
+        Prenda prenda = Objects.requireNonNull(prendaRepository.save(Prenda.builder()
                 .descripcion("Remera Test")
                 .precioBase(new BigDecimal("100.00"))
                 .tipoPrenda(TipoPrenda.CAMISA)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
+                .build()));
 
         stockService.establecer(prenda, 2, 1);
 
-        VentaEfectivo venta = ventaService.saveEfectivo(VentaEfectivo.builder()
+        VentaEfectivo venta = Objects.requireNonNull(ventaService.saveEfectivo(VentaEfectivo.builder()
                 .cliente(cliente)
                 .items(Collections.emptyList())
-                .build());
+                .build()));
 
-        clienteId = cliente.getId();
-        prendaId = prenda.getId();
-        ventaId = venta.getId();
+        prendaId = Objects.requireNonNull(prenda.getId());
+        ventaId = Objects.requireNonNull(venta.getId());
     }
 
     @Test

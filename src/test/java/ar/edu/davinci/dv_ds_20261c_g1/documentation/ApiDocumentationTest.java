@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
 @Transactional
+@SuppressWarnings("null")
 class ApiDocumentationTest {
 
     @Autowired
@@ -66,28 +68,28 @@ class ApiDocumentationTest {
 
     @BeforeEach
     void setUp() throws BusinessException {
-        Cliente cliente = clienteRepository.save(Cliente.builder()
+        Cliente cliente = Objects.requireNonNull(clienteRepository.save(Cliente.builder()
                 .nombre("Maria")
                 .apellido("Doc")
-                .build());
+                .build()));
 
-        Prenda prenda = prendaRepository.save(Prenda.builder()
+        Prenda prenda = Objects.requireNonNull(prendaRepository.save(Prenda.builder()
                 .descripcion("Campera Doc")
                 .precioBase(new BigDecimal("1500.00"))
                 .tipoPrenda(TipoPrenda.CAMPERA)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
+                .build()));
 
         stockService.establecer(prenda, 2, 1);
 
-        VentaEfectivo venta = ventaService.saveEfectivo(VentaEfectivo.builder()
+        VentaEfectivo venta = Objects.requireNonNull(ventaService.saveEfectivo(VentaEfectivo.builder()
                 .cliente(cliente)
                 .items(Collections.emptyList())
-                .build());
+                .build()));
 
-        clienteId = cliente.getId();
-        prendaId = prenda.getId();
-        ventaId = venta.getId();
+        clienteId = Objects.requireNonNull(cliente.getId());
+        prendaId = Objects.requireNonNull(prenda.getId());
+        ventaId = Objects.requireNonNull(venta.getId());
     }
 
     @Test

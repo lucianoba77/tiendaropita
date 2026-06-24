@@ -35,52 +35,82 @@ public class NegocioServiceImpl implements NegocioService {
     @Override
     @Transactional(readOnly = true)
     public BigDecimal calcularGananciasDelDia(LocalDate fecha) {
-        return calcularResumenDelDia(fecha).getTotal();
+        if (fecha == null) {
+            return BigDecimal.ZERO;
+        }
+        return ventaRepository.findByFecha(fecha).stream()
+                .map(Venta::calcularTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ResumenGananciasDia calcularResumenDelDia(LocalDate fecha) {
         if (fecha == null) {
-            return ResumenGananciasDia.builder()
-                    .total(BigDecimal.ZERO)
-                    .cantidadVentas(0)
-                    .totalEfectivo(BigDecimal.ZERO)
-                    .totalTarjeta(BigDecimal.ZERO)
-                    .build();
+            return resumenVacio();
         }
 
         List<Venta> ventas = ventaRepository.findByFecha(fecha);
-        BigDecimal totalEfectivo = BigDecimal.ZERO;
-        BigDecimal totalTarjeta = BigDecimal.ZERO;
+        TotalesAcumulados totales = new TotalesAcumulados();
         Map<Long, Integer> unidadesPorPrenda = new HashMap<>();
         Map<Long, String> descripcionPorPrenda = new HashMap<>();
 
         for (Venta venta : ventas) {
-            BigDecimal totalVenta = venta.calcularTotal();
-            if (venta instanceof VentaEfectivo) {
-                totalEfectivo = totalEfectivo.add(totalVenta);
-            } else if (venta instanceof VentaTarjeta) {
-                totalTarjeta = totalTarjeta.add(totalVenta);
-            }
-            if (venta.getItems() != null) {
-                for (Item item : venta.getItems()) {
-                    if (item.getPrenda() == null || item.getPrenda().getId() == null) {
-                        continue;
-                    }
-                    Prenda prenda = item.getPrenda();
-                    Long prendaId = prenda.getId();
-                    int cantidad = (item.getCantidad() != null) ? item.getCantidad() : 0;
-                    unidadesPorPrenda.merge(prendaId, cantidad, Integer::sum);
-                    descripcionPorPrenda.putIfAbsent(prendaId, prenda.getDescripcion());
-                }
-            }
+            acumularTotales(venta, totales);
+            acumularUnidadesPorPrenda(venta, unidadesPorPrenda, descripcionPorPrenda);
         }
 
-        BigDecimal total = totalEfectivo.add(totalTarjeta).setScale(2, RoundingMode.HALF_UP);
-        totalEfectivo = totalEfectivo.setScale(2, RoundingMode.HALF_UP);
-        totalTarjeta = totalTarjeta.setScale(2, RoundingMode.HALF_UP);
+        PrendaTop prendaTop = encontrarPrendaMasVendida(unidadesPorPrenda, descripcionPorPrenda);
 
+        return ResumenGananciasDia.builder()
+                .total(totales.total().setScale(2, RoundingMode.HALF_UP))
+                .cantidadVentas(ventas.size())
+                .totalEfectivo(totales.totalEfectivo().setScale(2, RoundingMode.HALF_UP))
+                .totalTarjeta(totales.totalTarjeta().setScale(2, RoundingMode.HALF_UP))
+                .prendaMasVendidaDescripcion(prendaTop.descripcion())
+                .prendaMasVendidaUnidades(prendaTop.unidades())
+                .build();
+    }
+
+    private static ResumenGananciasDia resumenVacio() {
+        return ResumenGananciasDia.builder()
+                .total(BigDecimal.ZERO)
+                .cantidadVentas(0)
+                .totalEfectivo(BigDecimal.ZERO)
+                .totalTarjeta(BigDecimal.ZERO)
+                .build();
+    }
+
+    private static void acumularTotales(Venta venta, TotalesAcumulados totales) {
+        BigDecimal totalVenta = venta.calcularTotal();
+        if (venta instanceof VentaEfectivo) {
+            totales.sumarEfectivo(totalVenta);
+        } else if (venta instanceof VentaTarjeta) {
+            totales.sumarTarjeta(totalVenta);
+        }
+    }
+
+    private static void acumularUnidadesPorPrenda(Venta venta,
+            Map<Long, Integer> unidadesPorPrenda,
+            Map<Long, String> descripcionPorPrenda) {
+        if (venta.getItems() == null) {
+            return;
+        }
+        for (Item item : venta.getItems()) {
+            if (item.getPrenda() == null || item.getPrenda().getId() == null) {
+                continue;
+            }
+            Prenda prenda = item.getPrenda();
+            Long prendaId = prenda.getId();
+            int cantidad = (item.getCantidad() != null) ? item.getCantidad() : 0;
+            unidadesPorPrenda.merge(prendaId, cantidad, (actual, delta) -> actual + delta);
+            descripcionPorPrenda.putIfAbsent(prendaId, prenda.getDescripcion());
+        }
+    }
+
+    private static PrendaTop encontrarPrendaMasVendida(Map<Long, Integer> unidadesPorPrenda,
+            Map<Long, String> descripcionPorPrenda) {
         Long prendaTopId = null;
         int maxUnidades = 0;
         for (Map.Entry<Long, Integer> entry : unidadesPorPrenda.entrySet()) {
@@ -89,14 +119,37 @@ public class NegocioServiceImpl implements NegocioService {
                 prendaTopId = entry.getKey();
             }
         }
+        if (prendaTopId == null) {
+            return new PrendaTop(null, null);
+        }
+        return new PrendaTop(descripcionPorPrenda.get(prendaTopId), maxUnidades);
+    }
 
-        return ResumenGananciasDia.builder()
-                .total(total)
-                .cantidadVentas(ventas.size())
-                .totalEfectivo(totalEfectivo)
-                .totalTarjeta(totalTarjeta)
-                .prendaMasVendidaDescripcion(prendaTopId != null ? descripcionPorPrenda.get(prendaTopId) : null)
-                .prendaMasVendidaUnidades(prendaTopId != null ? maxUnidades : null)
-                .build();
+    private static final class TotalesAcumulados {
+        private BigDecimal totalEfectivo = BigDecimal.ZERO;
+        private BigDecimal totalTarjeta = BigDecimal.ZERO;
+
+        void sumarEfectivo(BigDecimal monto) {
+            totalEfectivo = totalEfectivo.add(monto);
+        }
+
+        void sumarTarjeta(BigDecimal monto) {
+            totalTarjeta = totalTarjeta.add(monto);
+        }
+
+        BigDecimal totalEfectivo() {
+            return totalEfectivo;
+        }
+
+        BigDecimal totalTarjeta() {
+            return totalTarjeta;
+        }
+
+        BigDecimal total() {
+            return totalEfectivo.add(totalTarjeta);
+        }
+    }
+
+    private record PrendaTop(String descripcion, Integer unidades) {
     }
 }

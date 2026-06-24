@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class PrendaController {
 
     private static final String REDIRECT_LIST = "redirect:/tienda/prendas/list";
+    private static final String ATTR_PRENDA = "prenda";
 
     private final PrendaService prendaService;
 
@@ -55,13 +56,13 @@ public class PrendaController {
 
     @GetMapping("/new")
     public String nuevo(Model model) {
-        model.addAttribute("prenda", new PrendaWebForm());
+        model.addAttribute(ATTR_PRENDA, new PrendaWebForm());
         cargarCombos(model);
         return "new_prendas";
     }
 
     @PostMapping("/save")
-    public String guardar(@ModelAttribute("prenda") PrendaWebForm form) throws BusinessException {
+    public String guardar(@ModelAttribute(ATTR_PRENDA) PrendaWebForm form) throws BusinessException {
         Prenda guardada = prendaService.save(form.toPrenda());
         stockService.establecer(guardada, form.getStockInicial(), form.getStockMinimo());
         return REDIRECT_LIST;
@@ -71,14 +72,14 @@ public class PrendaController {
     public String editar(@PathVariable Long id, Model model) throws BusinessException {
         PrendaWebForm form = PrendaWebForm.from(prendaService.get(id));
         form.setStockMinimo(stockService.stockMinimo(id));
-        model.addAttribute("prenda", form);
+        model.addAttribute(ATTR_PRENDA, form);
         model.addAttribute("stockActual", stockService.cantidadDisponible(id));
         cargarCombos(model);
         return "edit_prendas";
     }
 
     @PostMapping("/update/{id}")
-    public String actualizar(@PathVariable Long id, @ModelAttribute("prenda") PrendaWebForm form,
+    public String actualizar(@PathVariable Long id, @ModelAttribute(ATTR_PRENDA) PrendaWebForm form,
             @RequestParam(name = "stock", required = false) Integer stock)
             throws BusinessException {
         Prenda actualizada = prendaService.update(id, form.toPrenda());
@@ -90,7 +91,7 @@ public class PrendaController {
     @GetMapping("/{id}/stock/historial")
     public String historialStock(@PathVariable Long id, Model model) throws BusinessException {
         Prenda prenda = prendaService.get(id);
-        model.addAttribute("prenda", prenda);
+        model.addAttribute(ATTR_PRENDA, prenda);
         model.addAttribute("stockActual", stockService.cantidadDisponible(id));
         model.addAttribute("movimientos", movimientoStockService.listarPorPrenda(id));
         return "historial_stock";
