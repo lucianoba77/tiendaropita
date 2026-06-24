@@ -41,7 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
 @Transactional
-@SuppressWarnings("null")
 class ApiDocumentationTest {
 
     @Autowired
@@ -68,12 +67,12 @@ class ApiDocumentationTest {
 
     @BeforeEach
     void setUp() throws BusinessException {
-        Cliente cliente = Objects.requireNonNull(clienteRepository.save(Cliente.builder()
+        Cliente cliente = clienteRepository.save(Objects.requireNonNull(Cliente.builder()
                 .nombre("Maria")
                 .apellido("Doc")
                 .build()));
 
-        Prenda prenda = Objects.requireNonNull(prendaRepository.save(Prenda.builder()
+        Prenda prenda = prendaRepository.save(Objects.requireNonNull(Prenda.builder()
                 .descripcion("Campera Doc")
                 .precioBase(new BigDecimal("1500.00"))
                 .tipoPrenda(TipoPrenda.CAMPERA)
@@ -97,11 +96,11 @@ class ApiDocumentationTest {
         String body = objectMapper.writeValueAsString(
                 java.util.Map.of("clienteId", clienteId, "items", Collections.emptyList()));
 
-        mockMvc.perform(post("/api/ventas/efectivo")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+        mockMvc.perform(Objects.requireNonNull(post("/api/ventas/efectivo")
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(body))))
                 .andExpect(status().isCreated())
-                .andDo(document("ventas/efectivo-create",
+                .andDo(Objects.requireNonNull(document("ventas/efectivo-create",
                         requestFields(
                                 fieldWithPath("clienteId").description("ID del cliente"),
                                 fieldWithPath("items").description("Items de la venta (puede ser vacio)")),
@@ -113,7 +112,7 @@ class ApiDocumentationTest {
                                 fieldWithPath("clienteRazonSocial").description("Nombre del cliente"),
                                 fieldWithPath("items").description("Items de la venta"),
                                 fieldWithPath("importeBruto").description("Importe bruto"),
-                                fieldWithPath("total").description("Total de la venta"))));
+                                fieldWithPath("total").description("Total de la venta")))));
     }
 
     @Test
@@ -121,26 +120,26 @@ class ApiDocumentationTest {
         String body = objectMapper.writeValueAsString(
                 java.util.Map.of("prendaId", prendaId, "cantidad", 5));
 
-        mockMvc.perform(post("/api/ventas/{ventaId}/items", ventaId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+        mockMvc.perform(Objects.requireNonNull(post("/api/ventas/{ventaId}/items", ventaId)
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(body))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists())
-                .andDo(document("ventas/add-item-stock-insuficiente",
+                .andDo(Objects.requireNonNull(document("ventas/add-item-stock-insuficiente",
                         pathParameters(
                                 parameterWithName("ventaId").description("ID de la venta")),
                         requestFields(
                                 fieldWithPath("prendaId").description("ID de la prenda"),
                                 fieldWithPath("cantidad").description("Cantidad solicitada")),
                         responseFields(
-                                fieldWithPath("error").description("Mensaje de error de negocio"))));
+                                fieldWithPath("error").description("Mensaje de error de negocio")))));
     }
 
     @Test
     void documentGetStock() throws Exception {
-        mockMvc.perform(get("/api/prendas/{prendaId}/stock", prendaId))
+        mockMvc.perform(Objects.requireNonNull(get("/api/prendas/{prendaId}/stock", prendaId)))
                 .andExpect(status().isOk())
-                .andDo(document("stock/get",
+                .andDo(Objects.requireNonNull(document("stock/get",
                         pathParameters(
                                 parameterWithName("prendaId").description("ID de la prenda")),
                         responseFields(
@@ -148,6 +147,6 @@ class ApiDocumentationTest {
                                 fieldWithPath("prendaDescripcion").description("Descripcion de la prenda"),
                                 fieldWithPath("cantidad").description("Stock disponible"),
                                 fieldWithPath("stockMinimo").description("Stock minimo configurado"),
-                                fieldWithPath("bajoMinimo").description("Indica si el stock esta bajo el minimo"))));
+                                fieldWithPath("bajoMinimo").description("Indica si el stock esta bajo el minimo")))));
     }
 }
