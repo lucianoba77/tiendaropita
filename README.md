@@ -8,10 +8,25 @@ tarjeta) con sus items, y calculo de ganancias del dia.
 - **Paquete base:** `ar.edu.davinci.dv_ds_20261c_g1`
 - **Puerto:** `8090` -> http://localhost:8090
 
+## Cumplimiento de los criterios de entrega (TP Final)
+
+Mapeo de los puntos pedidos por la catedra (Diseno de Sistemas - ACN5AV):
+
+| Punto | Requisito | Estado |
+|-------|-----------|--------|
+| 1 | Proyecto Java exportable + scripts SQL de MySQL; corre en `localhost:8090` | Completo |
+| 2 | Vista de Venta: cargar venta Efectivo y Tarjeta; agregar, modificar y quitar items | Completo |
+| 3 | Entidad `Negocio`/Tienda con lista de ventas y "calcular ganancias de un dia" | Completo |
+| 4 | `Prenda` con `EstadoPrenda` (Nueva, Promocion, Liquidacion) resuelto con Strategy | Completo |
+| 5 | Entidad para administrar el **stock** de cada producto; al vender se descuenta el stock | **Pendiente** (ver roadmap) |
+
+> El Punto 5 (gestion de stock) es la mejora prioritaria identificada: requiere una entidad
+> de stock por prenda y descontar la cantidad vendida al confirmar una venta.
+
 ## Stack tecnologico
 
 - Java 17+ (probado con Java 21)
-- Spring Boot 3.3.4 (Web, Data JPA, Thymeleaf, Validation, Actuator, REST Docs)
+- Spring Boot 3.3.13 (Web, Data JPA, Thymeleaf, Validation, Actuator, REST Docs)
 - MySQL 8 (desarrollo) / H2 (tests)
 - Lombok + MapStruct
 - Maven (incluye Maven Wrapper `mvnw`)
@@ -26,6 +41,39 @@ tarjeta) con sus items, y calculo de ganancias del dia.
 - **Template Method** (`Venta`): `calcularTotal() = importeBruto() + recargo() - descuento()`.
   - `VentaEfectivo`: sin recargo; descuento del 15% si el bruto supera $1000, sino 10%.
   - `VentaTarjeta`: recargo = `cantidadCuotas * coeficiente * importeBruto`; sin descuento.
+
+## Decisiones de diseno y buenas practicas
+
+Estas decisiones van mas alla del minimo pedido y refuerzan la calidad del diseno del sistema:
+
+- **Arquitectura en capas con dependencias unidireccionales**: `controller -> service -> repository -> domain`. La capa web (Thymeleaf) y la capa REST estan separadas (`controller.web` vs `controller.rest`), de modo que un cambio de UI no impacta en la API.
+- **Programacion contra interfaces (DIP de SOLID)**: cada servicio expone una interfaz (`PrendaService`, `VentaService`, etc.) con su implementacion en `service.impl`. Facilita testear con dobles y sustituir implementaciones.
+- **DTOs + MapStruct**: las entidades JPA nunca se exponen directamente en la API; se mapean a Request/Response con MapStruct, evitando fugas del modelo de persistencia y problemas de serializacion (lazy loading, ciclos).
+- **Validacion declarativa**: los Request usan Jakarta Bean Validation (`@NotNull`, `@Positive`, etc.) y se validan con `@Valid` en los controladores, separando la validacion de formato de la validacion de negocio.
+- **Manejo centralizado de errores**: `GlobalRestExceptionHandler` (`@RestControllerAdvice`) traduce `BusinessException` y errores de validacion a respuestas HTTP coherentes (400 + cuerpo JSON), evitando `try/catch` repetidos.
+- **Reglas de negocio en el dominio**: los calculos viven en las entidades (`Prenda.precioVenta()`, `Venta.calcularTotal()`, `Item.importe()`, `Negocio.calcularGananciasDelDia()`), siguiendo un modelo de dominio rico en vez de un modelo anemico.
+- **Transaccionalidad explicita**: los servicios marcan `@Transactional` (y `@Transactional(readOnly = true)` en consultas) para garantizar consistencia y optimizar lecturas.
+- **Precision monetaria correcta**: todos los importes usan `BigDecimal` con `RoundingMode.HALF_UP` y escala 2; nunca `double`/`float` (evita errores de redondeo en dinero).
+- **Herencia JPA `JOINED`** para `Venta` / `VentaEfectivo` / `VentaTarjeta`: normaliza el esquema y modela correctamente la jerarquia del Template Method.
+- **Manejo de relaciones bidireccionales en JSON**: uso de `@JsonManagedReference` / `@JsonBackReference` para evitar recursion infinita al serializar `Venta <-> Item` y `Negocio <-> Venta`.
+- **Testing por capas**: pruebas unitarias de los patrones (`PrendaTest` para Strategy, `VentaTest` para Template Method, `NegocioTest` para ganancias) y de persistencia con H2 (`PrendaRepositoryTest`), sin depender de MySQL.
+- **Convenciones de esquema consistentes**: nombres de columnas con prefijo por entidad (`prd_`, `cli_`, `vta_`, `itm_`, `neg_`) para legibilidad del modelo relacional.
+
+## Mejoras propuestas (roadmap)
+
+Mejoras identificadas para una proxima iteracion, ordenadas por impacto en el diseno:
+
+0. **Gestion de stock (Punto 5 del TP)** — *prioritaria*: agregar una entidad de stock asociada a la `Prenda` (cantidad disponible) y descontar la cantidad vendida al confirmar la venta, validando que no se venda mas de lo disponible (`BusinessException` si falta stock). Es un requisito explicito de la entrega.
+1. **Migrar `java.util.Date` a `java.time.LocalDate`/`LocalDateTime`** en `Venta` y filtros de fecha (API moderna, inmutable y sin zona horaria ambigua).
+2. **Versionado de esquema con Flyway o Liquibase** en lugar de `ddl-auto=update`, para migraciones reproducibles y controladas.
+3. **Documentacion de la API con OpenAPI/Swagger** (`springdoc-openapi`) para explorar y probar los endpoints desde el navegador.
+4. **Paginacion y ordenamiento** en los listados (`Pageable`) para escalar cuando crezcan los datos.
+5. **Tests de integracion con MockMvc / Spring REST Docs** sobre los controladores REST, complementando las pruebas unitarias actuales.
+6. **Seguridad con Spring Security** (autenticacion y roles) para proteger las operaciones de escritura.
+7. **Internacionalizacion (i18n)** de los mensajes de validacion y de la UI.
+8. **Logging con SLF4J** y niveles por entorno, reemplazando `spring.jpa.show-sql=true` en produccion.
+9. **Actualizar a una rama de Spring Boot con soporte** (3.5.x o 4.x): la 3.3.x esta en End-of-Life desde junio 2025.
+10. **Restringir los endpoints de Actuator** (`management.endpoints.web.exposure.include=*` expone todo; conviene limitar a `health,info`).
 
 ## Estructura de paquetes
 

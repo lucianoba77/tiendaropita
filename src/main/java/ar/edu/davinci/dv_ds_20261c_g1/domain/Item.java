@@ -2,6 +2,7 @@ package ar.edu.davinci.dv_ds_20261c_g1.domain;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -22,6 +23,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Linea de detalle de una {@link Venta}. Asocia una {@link Prenda} con una
+ * cantidad y conoce su importe (precio de venta unitario por cantidad).
+ */
 @Entity
 @Table(name = "items")
 @Getter
@@ -32,19 +37,19 @@ import lombok.ToString;
 @Builder
 public class Item implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 7984512369874512369L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "itm_id")
     private Long id;
 
-    @Column(name = "itm_cantidad")
-    private Integer cantidad;
-
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "itm_prd_id", referencedColumnName = "prd_id")
+    @JoinColumn(name = "itm_prd_id", referencedColumnName = "prd_id", nullable = false)
     private Prenda prenda;
+
+    @Column(name = "itm_cantidad", nullable = false)
+    private Integer cantidad;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "itm_vta_id", referencedColumnName = "vta_id")
@@ -52,13 +57,18 @@ public class Item implements Serializable {
     private Venta venta;
 
     /**
-     * Importe del item = precio de venta de la prenda * cantidad.
+     * Importe de la linea = precio de venta unitario de la prenda * cantidad.
      */
     @Transient
     public BigDecimal importe() {
         if (prenda == null || cantidad == null) {
             return BigDecimal.ZERO;
         }
-        return prenda.precioVenta().multiply(BigDecimal.valueOf(cantidad));
+        BigDecimal precioUnitario = prenda.precioVenta();
+        if (precioUnitario == null) {
+            return BigDecimal.ZERO;
+        }
+        return precioUnitario.multiply(BigDecimal.valueOf(cantidad))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }
