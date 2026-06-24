@@ -8,6 +8,7 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS items;
+DROP TABLE IF EXISTS movimientos_stock;
 DROP TABLE IF EXISTS ventas_tarjeta;
 DROP TABLE IF EXISTS ventas_efectivo;
 DROP TABLE IF EXISTS ventas;
@@ -30,12 +31,27 @@ CREATE TABLE prendas (
 
 -- ------------------------- Stock (1 a 1 con Prenda) ------------------
 CREATE TABLE stocks (
-    stk_id       BIGINT NOT NULL AUTO_INCREMENT,
-    stk_prd_id   BIGINT NOT NULL,
-    stk_cantidad INT    NOT NULL DEFAULT 0,
+    stk_id           BIGINT NOT NULL AUTO_INCREMENT,
+    stk_prd_id       BIGINT NOT NULL,
+    stk_cantidad     INT    NOT NULL DEFAULT 0,
+    stk_stock_minimo INT    NOT NULL DEFAULT 0,
+    stk_version      BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (stk_id),
     CONSTRAINT uq_stocks_prenda UNIQUE (stk_prd_id),
     CONSTRAINT fk_stocks_prenda FOREIGN KEY (stk_prd_id) REFERENCES prendas (prd_id)
+);
+
+-- ------------------------- Movimientos de stock ----------------------
+CREATE TABLE movimientos_stock (
+    mst_id          BIGINT       NOT NULL AUTO_INCREMENT,
+    mst_prd_id      BIGINT       NOT NULL,
+    mst_cantidad    INT          NOT NULL,
+    mst_tipo        VARCHAR(20)  NOT NULL,
+    mst_fecha       DATETIME     NOT NULL,
+    mst_vta_id      BIGINT       DEFAULT NULL,
+    mst_observacion VARCHAR(255) DEFAULT NULL,
+    PRIMARY KEY (mst_id),
+    CONSTRAINT fk_movimientos_prenda FOREIGN KEY (mst_prd_id) REFERENCES prendas (prd_id)
 );
 
 -- ------------------------- Clientes ----------------------------------

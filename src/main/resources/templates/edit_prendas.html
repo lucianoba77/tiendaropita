@@ -21,36 +21,48 @@
         <h1>Editar Prenda</h1>
         <form th:action="@{'/tienda/prendas/update/' + ${prenda.id}}" th:object="${prenda}" method="post">
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:field="*{id}" readonly />
+                <label>ID
+                    <input type="text" th:field="*{id}" readonly />
+                </label>
             </div>
             <div class="form-group">
-                <label>Descripcion</label>
-                <input type="text" th:field="*{descripcion}" required />
+                <label>Descripcion
+                    <input type="text" th:field="*{descripcion}" required />
+                </label>
             </div>
             <div class="form-group">
-                <label>Precio Base</label>
-                <input type="number" step="0.01" min="0" th:field="*{precioBase}" required />
+                <label>Precio Base
+                    <input type="number" step="0.01" min="0" th:field="*{precioBase}" required />
+                </label>
             </div>
             <div class="form-group">
-                <label>Tipo de Prenda</label>
-                <select th:field="*{tipoPrenda}">
-                    <option th:each="tipo : ${tipos}" th:value="${tipo}" th:text="${tipo}"></option>
-                </select>
+                <label>Tipo de Prenda
+                    <select th:field="*{tipoPrenda}">
+                        <option th:each="tipo : ${tipos}" th:value="${tipo}" th:text="${tipo}"></option>
+                    </select>
+                </label>
             </div>
             <div class="form-group">
-                <label>Estado</label>
-                <select th:field="*{estadoPrenda}">
-                    <option th:each="estado : ${estados}" th:value="${estado}" th:text="${estado}"></option>
-                </select>
+                <label>Estado
+                    <select th:field="*{estadoPrenda}">
+                        <option th:each="estado : ${estados}" th:value="${estado}" th:text="${estado}"></option>
+                    </select>
+                </label>
             </div>
             <div class="form-group">
-                <label>Valor Promocion (solo para estado PROMOCION)</label>
-                <input type="number" step="0.01" min="0" th:field="*{valorPromocion}" />
+                <label>Valor Promocion (solo para estado PROMOCION)
+                    <input type="number" step="0.01" min="0" th:field="*{valorPromocion}" />
+                </label>
             </div>
             <div class="form-group">
-                <label>Stock disponible</label>
-                <input type="number" step="1" min="0" name="stock" th:value="${stockActual}" />
+                <label>Stock disponible
+                    <input type="number" step="1" min="0" name="stock" th:value="${stockActual}" />
+                </label>
+            </div>
+            <div class="form-group">
+                <label>Stock minimo (alerta)
+                    <input type="number" step="1" min="0" th:field="*{stockMinimo}" />
+                </label>
             </div>
             <div class="actions">
                 <button type="submit" class="btn btn-success">Actualizar</button>

@@ -14,4 +14,6 @@ public class StockResponse {
     private Long prendaId;
     private String prendaDescripcion;
     private Integer cantidad;
+    private Integer stockMinimo;
+    private Boolean bajoMinimo;
 }

@@ -117,5 +117,31 @@ tr:hover td { background: #faf9ff; }
 .badge-nueva { background: var(--success); }
 .badge-promocion { background: var(--warning); color: #2d3436; }
 .badge-liquidacion { background: var(--danger); }
+.badge-stock-bajo { background: var(--danger); margin-left: 6px; }
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+.stat-card {
+    background: #faf9ff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+}
+.stat-card .label { color: var(--muted); font-size: 0.9em; }
+.stat-card .value { font-size: 1.4em; font-weight: 700; margin-top: 6px; }
 .text-right { text-align: right; }
 a.back { color: var(--primary); text-decoration: none; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}

@@ -1,6 +1,6 @@
 package ar.edu.davinci.dv_ds_20261c_g1.controller.web;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -21,11 +21,13 @@ public class NegocioController {
 
     @GetMapping("/ganancias")
     public String ganancias(
-            @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date fecha,
+            @RequestParam(value = "fecha", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fecha,
             Model model) {
         if (fecha != null) {
             model.addAttribute("fecha", fecha);
-            model.addAttribute("ganancias", negocioService.calcularGananciasDelDia(fecha));
+            var resumen = negocioService.calcularResumenDelDia(fecha);
+            model.addAttribute("resumen", resumen);
+            model.addAttribute("ganancias", resumen.getTotal());
             model.addAttribute("ventas", negocioService.ventasPorFecha(fecha));
         }
         return "ganancias";

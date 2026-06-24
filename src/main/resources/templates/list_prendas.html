@@ -48,11 +48,20 @@
                 </td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(prenda.precioBase, 1, 2, 'COMMA')}">0,00</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA')}">0,00</td>
-                <td class="text-right" th:text="${stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0}">0</td>
+                <td class="text-right">
+                    <span th:text="${stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0}">0</span>
+                    <span class="badge badge-stock-bajo"
+                          th:if="${stockBajoPorPrenda != null and stockBajoPorPrenda.get(prenda.id)}">
+                        Stock bajo
+                    </span>
+                </td>
                 <td class="actions">
                     <a class="btn btn-primary btn-sm" th:href="@{'/tienda/prendas/edit/' + ${prenda.id}}">Editar</a>
-                    <a class="btn btn-danger btn-sm" th:href="@{'/tienda/prendas/delete/' + ${prenda.id}}"
-                       onclick="return confirm('¿Eliminar la prenda?');">Eliminar</a>
+                    <a class="btn btn-light btn-sm" th:href="@{'/tienda/prendas/' + ${prenda.id} + '/stock/historial'}">Historial</a>
+                    <form th:action="@{'/tienda/prendas/delete/' + ${prenda.id}}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('¿Eliminar la prenda?');">Eliminar</button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(listPrendas)}">

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +50,27 @@ public class Stock implements Serializable {
 
     @Column(name = "stk_cantidad", nullable = false)
     private Integer cantidad;
+
+    @Column(name = "stk_stock_minimo", nullable = false)
+    @Builder.Default
+    private Integer stockMinimo = 0;
+
+    @Version
+    @Column(name = "stk_version")
+    private Long version;
+
+    /**
+     * Indica si el stock actual esta por debajo del minimo configurado.
+     */
+    @Transient
+    public boolean estaBajoMinimo() {
+        int minimo = (stockMinimo != null) ? stockMinimo : 0;
+        if (minimo <= 0) {
+            return false;
+        }
+        int actual = (cantidad != null) ? cantidad : 0;
+        return actual < minimo;
+    }
 
     /**
      * Indica si hay stock suficiente para descontar la cantidad pedida.

@@ -1,0 +1,29 @@
+= API Tienda Ropita
+:doctype: book
+:toc: left
+:sectnums:
+
+== Ventas
+
+=== Crear venta en efectivo
+
+include::{snippets}/ventas/efectivo-create/http-request.adoc[]
+include::{snippets}/ventas/efectivo-create/request-fields.adoc[]
+include::{snippets}/ventas/efectivo-create/http-response.adoc[]
+include::{snippets}/ventas/efectivo-create/response-fields.adoc[]
+
+=== Agregar item con stock insuficiente
+
+include::{snippets}/ventas/add-item-stock-insuficiente/http-request.adoc[]
+include::{snippets}/ventas/add-item-stock-insuficiente/request-fields.adoc[]
+include::{snippets}/ventas/add-item-stock-insuficiente/http-response.adoc[]
+include::{snippets}/ventas/add-item-stock-insuficiente/response-fields.adoc[]
+
+== Stock
+
+=== Consultar stock de una prenda
+
+include::{snippets}/stock/get/http-request.adoc[]
+include::{snippets}/stock/get/path-parameters.adoc[]
+include::{snippets}/stock/get/http-response.adoc[]
+include::{snippets}/stock/get/response-fields.adoc[]

@@ -41,15 +41,17 @@
             <tbody>
             <tr th:each="venta : ${listVentas}">
                 <td th:text="${venta.id}">1</td>
-                <td th:text="${#dates.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</td>
+                <td th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</td>
                 <td th:text="${venta.cliente != null ? venta.cliente.razonSocial : '-'}">Cliente</td>
                 <td th:text="${venta.class.simpleName}">Tipo</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(venta.importeBruto(), 1, 2, 'COMMA')}">0,00</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(venta.calcularTotal(), 1, 2, 'COMMA')}">0,00</td>
                 <td class="actions">
                     <a class="btn btn-primary btn-sm" th:href="@{'/tienda/ventas/show/' + ${venta.id}}">Ver</a>
-                    <a class="btn btn-danger btn-sm" th:href="@{'/tienda/ventas/delete/' + ${venta.id}}"
-                       onclick="return confirm('¿Eliminar la venta?');">Eliminar</a>
+                    <form th:action="@{'/tienda/ventas/delete/' + ${venta.id}}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('¿Eliminar la venta?');">Eliminar</button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(listVentas)}">

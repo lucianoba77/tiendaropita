@@ -2,6 +2,7 @@ package ar.edu.davinci.dv_ds_20261c_g1.mapper;
 
 import java.util.List;
 
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -10,7 +11,7 @@ import ar.edu.davinci.dv_ds_20261c_g1.controller.request.PrendaUpdateRequest;
 import ar.edu.davinci.dv_ds_20261c_g1.controller.response.PrendaResponse;
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Prenda;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface PrendaMapper {
 
     @Mapping(target = "id", ignore = true)

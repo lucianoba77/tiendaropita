@@ -28,11 +28,17 @@ public class PrendaServiceImpl implements PrendaService {
 
     @Override
     public Page<Prenda> list(Pageable pageable) {
+        if (pageable == null) {
+            throw new IllegalArgumentException("El pageable es obligatorio");
+        }
         return prendaRepository.findAll(pageable);
     }
 
     @Override
     public Prenda get(Long id) throws BusinessException {
+        if (id == null) {
+            throw new BusinessException("El id de la prenda es obligatorio");
+        }
         return prendaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("No existe la prenda con id " + id));
     }
@@ -59,8 +65,10 @@ public class PrendaServiceImpl implements PrendaService {
     @Override
     public void delete(Long id) throws BusinessException {
         Prenda existente = get(id);
-        stockService.eliminarPorPrenda(id);
-        prendaRepository.delete(existente);
+        if (existente.getId() != null) {
+            stockService.eliminarPorPrenda(id);
+            prendaRepository.delete(existente);
+        }
     }
 
     private void validar(Prenda prenda) throws BusinessException {

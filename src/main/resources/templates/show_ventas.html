@@ -22,7 +22,7 @@
         <h1>Venta #<span th:text="${venta.id}">1</span></h1>
         <p>
             <strong>Tipo:</strong> <span th:text="${venta.class.simpleName}">Tipo</span> &nbsp;|&nbsp;
-            <strong>Fecha:</strong> <span th:text="${#dates.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</span> &nbsp;|&nbsp;
+            <strong>Fecha:</strong> <span th:text="${#temporals.format(venta.fecha, 'dd/MM/yyyy')}">Fecha</span> &nbsp;|&nbsp;
             <strong>Cliente:</strong> <span th:text="${venta.cliente != null ? venta.cliente.razonSocial : '-'}">Cliente</span>
         </p>
         <p th:if="${venta.class.simpleName == 'VentaTarjeta'}">
@@ -53,15 +53,21 @@
                 <td>
                     <form th:action="@{'/tienda/ventas/' + ${venta.id} + '/items/' + ${item.id} + '/update'}"
                           method="post" style="display:flex; gap:6px; align-items:center;">
-                        <input type="number" name="cantidad" min="1" th:value="${item.cantidad}" style="width:80px;" />
+                        <label>
+                            Cantidad
+                            <input th:id="${'cantidad-' + item.id}" type="number" name="cantidad" min="1"
+                                   th:value="${item.cantidad}" style="width:80px;" />
+                        </label>
                         <button type="submit" class="btn btn-primary btn-sm">Modificar</button>
                     </form>
                 </td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(item.importe(), 1, 2, 'COMMA')}">0,00</td>
                 <td>
-                    <a class="btn btn-danger btn-sm"
-                       th:href="@{'/tienda/ventas/' + ${venta.id} + '/items/' + ${item.id} + '/delete'}"
-                       onclick="return confirm('¿Quitar el item?');">Quitar</a>
+                    <form th:action="@{'/tienda/ventas/' + ${venta.id} + '/items/' + ${item.id} + '/delete'}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('¿Quitar el item?');">Quitar</button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(venta.items)}">
@@ -75,15 +81,17 @@
         <h2>Agregar Item</h2>
         <form th:action="@{'/tienda/ventas/' + ${venta.id} + '/items/add'}" method="post">
             <div class="form-group">
-                <label>Prenda</label>
-                <select name="prendaId" required>
-                    <option th:each="prenda : ${prendas}" th:value="${prenda.id}"
-                            th:text="${prenda.descripcion + ' (' + #numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA') + ') - stock: ' + (stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0)}"></option>
-                </select>
+                <label>Prenda
+                    <select id="prendaId" name="prendaId" required>
+                        <option th:each="prenda : ${prendas}" th:value="${prenda.id}"
+                                th:text="${prenda.descripcion + ' (' + #numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA') + ') - stock: ' + (stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0)}"></option>
+                    </select>
+                </label>
             </div>
             <div class="form-group">
-                <label>Cantidad</label>
-                <input type="number" name="cantidad" min="1" value="1" required />
+                <label>Cantidad
+                    <input id="cantidad-add" type="number" name="cantidad" min="1" value="1" required />
+                </label>
             </div>
             <button type="submit" class="btn btn-success">Agregar Item</button>
         </form>

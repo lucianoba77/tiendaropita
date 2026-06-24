@@ -28,6 +28,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class VentaController {
 
+    private static final String REDIRECT_LIST = "redirect:/tienda/ventas/list";
+    private static final String REDIRECT_SHOW_PREFIX = "redirect:/tienda/ventas/show/";
+
     private final VentaService ventaService;
 
     private final ClienteService clienteService;
@@ -66,7 +69,7 @@ public class VentaController {
                 .items(new ArrayList<>())
                 .build();
         VentaEfectivo guardada = ventaService.saveEfectivo(venta);
-        return "redirect:/tienda/ventas/show/" + guardada.getId();
+        return REDIRECT_SHOW_PREFIX + guardada.getId();
     }
 
     @GetMapping("/new/tarjeta")
@@ -86,7 +89,7 @@ public class VentaController {
                 .items(new ArrayList<>())
                 .build();
         VentaTarjeta guardada = ventaService.saveTarjeta(venta);
-        return "redirect:/tienda/ventas/show/" + guardada.getId();
+        return REDIRECT_SHOW_PREFIX + guardada.getId();
     }
 
     @PostMapping("/{id}/items/add")
@@ -94,7 +97,7 @@ public class VentaController {
             @RequestParam Long prendaId,
             @RequestParam Integer cantidad) throws BusinessException {
         ventaService.addItem(id, prendaId, cantidad);
-        return "redirect:/tienda/ventas/show/" + id;
+        return REDIRECT_SHOW_PREFIX + id;
     }
 
     @PostMapping("/{id}/items/{itemId}/update")
@@ -102,18 +105,18 @@ public class VentaController {
             @PathVariable Long itemId,
             @RequestParam Integer cantidad) throws BusinessException {
         ventaService.updateItem(id, itemId, cantidad);
-        return "redirect:/tienda/ventas/show/" + id;
+        return REDIRECT_SHOW_PREFIX + id;
     }
 
-    @GetMapping("/{id}/items/{itemId}/delete")
+    @PostMapping("/{id}/items/{itemId}/delete")
     public String quitarItem(@PathVariable Long id, @PathVariable Long itemId) throws BusinessException {
         ventaService.removeItem(id, itemId);
-        return "redirect:/tienda/ventas/show/" + id;
+        return REDIRECT_SHOW_PREFIX + id;
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String eliminar(@PathVariable Long id) throws BusinessException {
         ventaService.delete(id);
-        return "redirect:/tienda/ventas/list";
+        return REDIRECT_LIST;
     }
 }

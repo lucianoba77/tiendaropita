@@ -1,9 +1,12 @@
 package ar.edu.davinci.dv_ds_20261c_g1.service.impl;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class VentaServiceImpl implements VentaService {
 
+    private static final ZoneId ZONA_HORARIA = ZoneId.of("America/Argentina/Buenos_Aires");
+
     private final VentaRepository ventaRepository;
 
     private final ClienteService clienteService;
@@ -42,20 +47,25 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional(readOnly = true)
     public Venta get(Long id) throws BusinessException {
-        return ventaRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("No existe la venta con id " + id));
+        return buscarVenta(id);
     }
 
     @Override
     @Transactional
     public VentaEfectivo saveEfectivo(VentaEfectivo venta) throws BusinessException {
+        if (venta == null) {
+            throw new BusinessException("La venta es obligatoria");
+        }
         prepararVenta(venta);
-        return ventaRepository.save(venta);
+        return guardarVentaEfectivo(Objects.requireNonNull(venta));
     }
 
     @Override
     @Transactional
     public VentaTarjeta saveTarjeta(VentaTarjeta venta) throws BusinessException {
+        if (venta == null) {
+            throw new BusinessException("La venta es obligatoria");
+        }
         if (venta.getCantidadCuotas() == null || venta.getCantidadCuotas() <= 0) {
             throw new BusinessException("La cantidad de cuotas debe ser mayor a cero");
         }
@@ -63,17 +73,17 @@ public class VentaServiceImpl implements VentaService {
             throw new BusinessException("El coeficiente de la tarjeta es obligatorio");
         }
         prepararVenta(venta);
-        return ventaRepository.save(venta);
+        return guardarVentaTarjeta(Objects.requireNonNull(venta));
     }
 
     @Override
     @Transactional
     public void delete(Long id) throws BusinessException {
-        Venta venta = get(id);
+        Venta venta = buscarVenta(id);
         if (venta.getItems() != null) {
             for (Item item : venta.getItems()) {
                 if (item.getPrenda() != null && item.getPrenda().getId() != null) {
-                    stockService.reponer(item.getPrenda().getId(), item.getCantidad());
+                    stockService.reponer(item.getPrenda().getId(), item.getCantidad(), id);
                 }
             }
         }
@@ -86,15 +96,15 @@ public class VentaServiceImpl implements VentaService {
         if (cantidad == null || cantidad <= 0) {
             throw new BusinessException("La cantidad debe ser mayor a cero");
         }
-        Venta venta = get(ventaId);
+        Venta venta = buscarVenta(ventaId);
         Prenda prenda = prendaService.get(prendaId);
-        stockService.descontar(prendaId, cantidad);
+        stockService.descontar(prendaId, cantidad, ventaId);
         Item item = Item.builder()
                 .prenda(prenda)
                 .cantidad(cantidad)
                 .build();
         venta.addItem(item);
-        return ventaRepository.save(venta);
+        return guardarVenta(venta);
     }
 
     @Override
@@ -103,32 +113,52 @@ public class VentaServiceImpl implements VentaService {
         if (cantidad == null || cantidad <= 0) {
             throw new BusinessException("La cantidad debe ser mayor a cero");
         }
-        Venta venta = get(ventaId);
+        Venta venta = buscarVenta(ventaId);
         Item item = buscarItem(venta, itemId);
         Long prendaId = (item.getPrenda() != null) ? item.getPrenda().getId() : null;
         int cantidadAnterior = (item.getCantidad() != null) ? item.getCantidad() : 0;
         int diferencia = cantidad - cantidadAnterior;
         if (prendaId != null) {
             if (diferencia > 0) {
-                stockService.descontar(prendaId, diferencia);
+                stockService.descontar(prendaId, diferencia, ventaId);
             } else if (diferencia < 0) {
-                stockService.reponer(prendaId, -diferencia);
+                stockService.reponer(prendaId, -diferencia, ventaId);
             }
         }
         item.setCantidad(cantidad);
-        return ventaRepository.save(venta);
+        return guardarVenta(venta);
     }
 
     @Override
     @Transactional
     public Venta removeItem(Long ventaId, Long itemId) throws BusinessException {
-        Venta venta = get(ventaId);
+        Venta venta = buscarVenta(ventaId);
         Item item = buscarItem(venta, itemId);
         if (item.getPrenda() != null && item.getPrenda().getId() != null) {
-            stockService.reponer(item.getPrenda().getId(), item.getCantidad());
+            stockService.reponer(item.getPrenda().getId(), item.getCantidad(), ventaId);
         }
         venta.removeItem(item);
-        return ventaRepository.save(venta);
+        return guardarVenta(venta);
+    }
+
+    private VentaEfectivo guardarVentaEfectivo(VentaEfectivo venta) {
+        return Objects.requireNonNull(ventaRepository.save(Objects.requireNonNull(venta)));
+    }
+
+    private VentaTarjeta guardarVentaTarjeta(VentaTarjeta venta) {
+        return Objects.requireNonNull(ventaRepository.save(Objects.requireNonNull(venta)));
+    }
+
+    private Venta guardarVenta(Venta venta) {
+        return Objects.requireNonNull(ventaRepository.save(Objects.requireNonNull(venta)));
+    }
+
+    private @NonNull Venta buscarVenta(Long id) throws BusinessException {
+        if (id == null) {
+            throw new BusinessException("El id de la venta es obligatorio");
+        }
+        return Objects.requireNonNull(ventaRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("No existe la venta con id " + id)));
     }
 
     private Item buscarItem(Venta venta, Long itemId) throws BusinessException {
@@ -152,7 +182,7 @@ public class VentaServiceImpl implements VentaService {
         venta.setCliente(cliente);
 
         if (venta.getFecha() == null) {
-            venta.setFecha(Calendar.getInstance().getTime());
+            venta.setFecha(LocalDate.now(ZONA_HORARIA));
         }
 
         List<Item> itemsResueltos = new ArrayList<>();

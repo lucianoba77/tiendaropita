@@ -49,6 +49,13 @@ public class PrendaControllerRest {
         return prendaService.list(pageable).map(this::toResponseConStock);
     }
 
+    @GetMapping("/stock-bajo")
+    public List<PrendaResponse> stockBajo() {
+        return stockService.listarStockBajo().stream()
+                .map(stock -> toResponseConStock(stock.getPrenda()))
+                .toList();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PrendaResponse> getById(@PathVariable Long id) throws BusinessException {
         Prenda prenda = prendaService.get(id);
@@ -59,7 +66,7 @@ public class PrendaControllerRest {
     public ResponseEntity<PrendaResponse> create(@Valid @RequestBody PrendaInsertRequest request)
             throws BusinessException {
         Prenda prenda = prendaService.save(prendaMapper.toEntity(request));
-        stockService.establecer(prenda, request.getStockInicial());
+        stockService.establecer(prenda, request.getStockInicial(), request.getStockMinimo());
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponseConStock(prenda));
     }
 
@@ -67,8 +74,11 @@ public class PrendaControllerRest {
     public ResponseEntity<PrendaResponse> update(@PathVariable Long id,
             @Valid @RequestBody PrendaUpdateRequest request) throws BusinessException {
         Prenda prenda = prendaService.update(id, prendaMapper.toEntity(request));
-        if (request.getStock() != null) {
-            stockService.establecer(prenda, request.getStock());
+        if (request.getStock() != null || request.getStockMinimo() != null) {
+            Integer cantidad = request.getStock() != null
+                    ? request.getStock()
+                    : stockService.cantidadDisponible(id);
+            stockService.establecer(prenda, cantidad, request.getStockMinimo());
         }
         return ResponseEntity.ok(toResponseConStock(prenda));
     }

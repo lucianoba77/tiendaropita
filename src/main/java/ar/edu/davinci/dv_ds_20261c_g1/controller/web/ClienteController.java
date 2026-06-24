@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClienteController {
 
+    private static final String REDIRECT_LIST = "redirect:/tienda/clientes/list";
+
     private final ClienteService clienteService;
 
     @GetMapping("/list")
@@ -28,32 +30,44 @@ public class ClienteController {
 
     @GetMapping("/new")
     public String nuevo(Model model) {
-        model.addAttribute("cliente", new Cliente());
+        model.addAttribute("cliente", new ClienteWebForm());
         return "new_clientes";
     }
 
     @PostMapping("/save")
-    public String guardar(@ModelAttribute("cliente") Cliente cliente) throws BusinessException {
-        clienteService.save(cliente);
-        return "redirect:/tienda/clientes/list";
+    public String guardar(@ModelAttribute("cliente") ClienteWebForm form) throws BusinessException {
+        clienteService.save(toCliente(form));
+        return REDIRECT_LIST;
     }
 
     @GetMapping("/edit/{id}")
     public String editar(@PathVariable Long id, Model model) throws BusinessException {
-        model.addAttribute("cliente", clienteService.get(id));
+        Cliente cliente = clienteService.get(id);
+        model.addAttribute("cliente", ClienteWebForm.builder()
+                .id(cliente.getId())
+                .nombre(cliente.getNombre())
+                .apellido(cliente.getApellido())
+                .build());
         return "edit_clientes";
     }
 
     @PostMapping("/update/{id}")
-    public String actualizar(@PathVariable Long id, @ModelAttribute("cliente") Cliente cliente)
+    public String actualizar(@PathVariable Long id, @ModelAttribute("cliente") ClienteWebForm form)
             throws BusinessException {
-        clienteService.update(id, cliente);
-        return "redirect:/tienda/clientes/list";
+        clienteService.update(id, toCliente(form));
+        return REDIRECT_LIST;
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String eliminar(@PathVariable Long id) throws BusinessException {
         clienteService.delete(id);
-        return "redirect:/tienda/clientes/list";
+        return REDIRECT_LIST;
+    }
+
+    private Cliente toCliente(ClienteWebForm form) {
+        return Cliente.builder()
+                .nombre(form.getNombre())
+                .apellido(form.getApellido())
+                .build();
     }
 }

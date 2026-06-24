@@ -1,7 +1,6 @@
 package ar.edu.davinci.dv_ds_20261c_g1.controller.rest;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -110,6 +109,6 @@ public class VentaControllerRest {
                         .prenda(Prenda.builder().id(r.getPrendaId()).build())
                         .cantidad(r.getCantidad())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
     }
 }

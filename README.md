@@ -23,7 +23,7 @@ Mapeo de los puntos pedidos por la catedra (Diseno de Sistemas - ACN5AV):
 ## Stack tecnologico
 
 - Java 17+ (probado con Java 21)
-- Spring Boot 3.3.13 (Web, Data JPA, Thymeleaf, Validation, Actuator, REST Docs)
+- Spring Boot 3.5.15 (Web, Data JPA, Thymeleaf, Validation, Actuator, REST Docs)
 - MySQL 8 (desarrollo) / H2 (tests)
 - Lombok + MapStruct
 - Maven (incluye Maven Wrapper `mvnw`)
@@ -38,6 +38,18 @@ Mapeo de los puntos pedidos por la catedra (Diseno de Sistemas - ACN5AV):
 - **Template Method** (`Venta`): `calcularTotal() = importeBruto() + recargo() - descuento()`.
   - `VentaEfectivo`: sin recargo; descuento del 15% si el bruto supera $1000, sino 10%.
   - `VentaTarjeta`: recargo = `cantidadCuotas * coeficiente * importeBruto`; sin descuento.
+
+## Documentacion de diseno
+
+Diagramas UML en la carpeta [`docs/`](docs/):
+
+| Diagrama | Archivo | Uso en la defensa |
+|----------|---------|-------------------|
+| Clases | [diagrama-clases.md](docs/diagrama-clases.md) | Strategy en `EstadoPrenda`, Template Method en `Venta`, auditoria de stock |
+| Secuencia | [diagrama-secuencia-add-item.md](docs/diagrama-secuencia-add-item.md) | Flujo agregar item con validacion de stock y bloqueo optimista |
+| Capas | [diagrama-capas.md](docs/diagrama-capas.md) | Separacion web/REST/servicio/repositorio/dominio |
+
+**Frase guia para la presentacion:** *"El patron Strategy vive en el enum `EstadoPrenda`; el Template Method, en la jerarquia de `Venta`; y la auditoria de stock registra cada movimiento desde un unico punto de escritura en `StockServiceImpl`."*
 
 ## Gestion de stock (Punto 5)
 
@@ -55,8 +67,76 @@ Administra la cantidad disponible de cada prenda y la mantiene consistente con l
   cada prenda al agregar items en una venta.
 - **API REST**: `GET/PUT /api/prendas/{id}/stock` y `POST /api/prendas/{id}/stock/reponer`; ademas
   `PrendaResponse` incluye `stockDisponible`.
-- **Tests**: `StockTest` (dominio), `StockRepositoryTest` (persistencia con H2) y `StockServiceImplTest`
-  (validacion de stock insuficiente y descuento/reposicion con Mockito).
+- **Tests**: `StockTest` (dominio), `StockRepositoryTest` (persistencia con H2), `StockServiceImplTest`
+  (validacion de stock insuficiente y descuento/reposicion con Mockito), `VentaServiceStockIntegrationTest`
+  (consistencia transaccional real) y `ApiDocumentationTest` (REST Docs).
+
+### Mejoras destacadas (mas alla del TP)
+
+| Mejora | Descripcion |
+|--------|-------------|
+| Diagramas UML | [`docs/`](docs/) — clases, secuencia add-item, capas |
+| Spring REST Docs | `ApiDocumentationTest` + HTML en `target/generated-docs/` |
+| Integracion Venta+Stock | Test que valida fallo transaccional sin modificar stock |
+| Historial de movimientos | Entidad `MovimientoStock` (VENTA, REPOSICION, AJUSTE) |
+| Alertas stock bajo | Campo `stockMinimo`, badge en listado, `GET /api/prendas/stock-bajo` |
+| Bloqueo optimista | `@Version` en `Stock`; HTTP 409 ante conflictos concurrentes |
+| Ganancias enriquecidas | Desglose efectivo/tarjeta, cantidad de ventas, prenda mas vendida |
+
+Endpoints REST adicionales:
+
+| Metodo | Endpoint | Descripcion |
+|--------|----------|-------------|
+| GET | `/api/prendas/stock-bajo` | Prendas con stock por debajo del minimo |
+| GET | `/api/prendas/{id}/stock/movimientos` | Historial de movimientos de stock |
+| GET | `/api/prendas/{id}/stock` | Stock con `stockMinimo` y flag `bajoMinimo` |
+
+Ruta web adicional: `/tienda/prendas/{id}/stock/historial`.
+
+## Compatibilidad y funcionamiento
+
+Los flujos del TP **siguen operando igual**. Las mejoras son aditivas; no reemplazan
+funcionalidad existente.
+
+**Lo que no cambio:**
+
+- ABM de prendas, clientes y ventas (efectivo/tarjeta)
+- Agregar, modificar y quitar items en una venta
+- Descuento automatico de stock al vender
+- Total de ganancias del dia (mismo calculo; solo se agrego desglose en pantalla)
+- Patrones Strategy y Template Method
+- Endpoints REST originales (`/api/prendas`, `/api/ventas`, `/api/clientes`, etc.)
+
+**Lo que se agrego:**
+
+- Historial auditable de cada cambio de stock (`MovimientoStock`)
+- Stock minimo configurable con alerta visual en el listado
+- Reporte de ganancias con mas metricas (efectivo vs tarjeta, prenda top)
+- Documentacion de diseno (diagramas) y de API (REST Docs)
+- Proteccion ante condiciones de carrera en stock (`@Version` + HTTP 409)
+
+### Detalles a tener en cuenta
+
+1. **Base de datos:** con `ddl-auto=update` (default), Hibernate crea solas las columnas/tablas
+   nuevas (`stk_stock_minimo`, `stk_version`, `movimientos_stock`). No hace falta migrar a mano
+   salvo que uses `ddl-auto=none` y ejecutes `01-tablas.sql` manualmente.
+2. **Stock minimo = 0:** no muestra alerta (valor por defecto). Solo alerta si el minimo es > 0
+   y el stock actual cae por debajo.
+3. **Historial de stock:** cada venta, reposicion o ajuste manual genera un movimiento. Es
+   funcionalidad nueva, no altera comportamiento previo.
+4. **Concurrencia:** si dos operaciones modifican el mismo stock simultaneamente, la API responde
+   **409 Conflict** con mensaje para reintentar.
+5. **Tests:** `mvnw.cmd test` ejecuta 28 tests (unitarios, integracion y REST Docs).
+
+### Verificacion rapida manual
+
+Con la app corriendo en http://localhost:8090:
+
+1. **Stock bajo:** crear/editar una prenda con stock 5 y minimo 10 → badge rojo en el listado.
+2. **Historial:** realizar una venta → en "Historial" de esa prenda debe aparecer movimiento VENTA.
+3. **Ganancias:** `/tienda/negocio/ganancias` → cards con efectivo/tarjeta y prenda mas vendida.
+4. **Stock insuficiente:** intentar vender mas unidades de las disponibles → error sin cambiar stock.
+5. **API documentada:** `mvnw.cmd package` → abrir `target/generated-docs/index.html`.
 
 ## Decisiones de diseno y buenas practicas
 
@@ -84,7 +164,7 @@ Mejoras identificadas para una proxima iteracion, ordenadas por impacto en el di
 2. **Versionado de esquema con Flyway o Liquibase** en lugar de `ddl-auto=update`, para migraciones reproducibles y controladas.
 3. **Documentacion de la API con OpenAPI/Swagger** (`springdoc-openapi`) para explorar y probar los endpoints desde el navegador.
 4. **Paginacion y ordenamiento** en los listados (`Pageable`) para escalar cuando crezcan los datos.
-5. **Tests de integracion con MockMvc / Spring REST Docs** sobre los controladores REST, complementando las pruebas unitarias actuales.
+5. **Tests de integracion con MockMvc / Spring REST Docs** sobre los controladores REST, complementando las pruebas unitarias actuales. *(Implementado: ver seccion Documentacion API REST.)*
 6. **Seguridad con Spring Security** (autenticacion y roles) para proteger las operaciones de escritura.
 7. **Internacionalizacion (i18n)** de los mensajes de validacion y de la UI.
 8. **Logging con SLF4J** y niveles por entorno, reemplazando `spring.jpa.show-sql=true` en produccion.
@@ -179,7 +259,8 @@ Si preferis administrar el esquema manualmente:
 ## Navegacion web
 
 - `/` - Menu principal
-- `/tienda/prendas/list` - ABM de prendas
+- `/tienda/prendas/list` - ABM de prendas (con alerta stock bajo e historial)
+- `/tienda/prendas/{id}/stock/historial` - Historial de movimientos de stock
 - `/tienda/clientes/list` - ABM de clientes
 - `/tienda/ventas/list` - Ventas (alta efectivo/tarjeta, detalle con agregar/modificar/quitar items)
 - `/tienda/negocio/ganancias` - Calcular ganancias de un dia
@@ -200,6 +281,9 @@ Si preferis administrar el esquema manualmente:
 | POST   | `/api/ventas/{id}/items`               | Agregar item a una venta          |
 | PUT    | `/api/ventas/{id}/items/{itemId}`      | Modificar cantidad de un item     |
 | DELETE | `/api/ventas/{id}/items/{itemId}`      | Quitar un item                    |
+| GET    | `/api/prendas/stock-bajo`              | Prendas con stock bajo minimo     |
+| GET    | `/api/prendas/{id}/stock`              | Consultar stock de una prenda     |
+| GET    | `/api/prendas/{id}/stock/movimientos`  | Historial de movimientos          |
 
 ## Exportar el proyecto a ZIP (entrega)
 
@@ -220,5 +304,17 @@ mvnw.cmd test
 ```
 
 Incluye pruebas unitarias del patron Strategy (`PrendaTest`), del Template Method
-de ventas (`VentaTest`), del calculo de ganancias (`NegocioTest`) y de persistencia
-JPA con H2 (`PrendaRepositoryTest`).
+de ventas (`VentaTest`), del calculo de ganancias (`NegocioTest`), de persistencia
+JPA con H2 (`PrendaRepositoryTest`), integracion Venta+Stock (`VentaServiceStockIntegrationTest`)
+y documentacion REST (`ApiDocumentationTest`).
+
+## Documentacion API REST (Spring REST Docs)
+
+Tras ejecutar los tests, generar el HTML con:
+
+```bash
+mvnw.cmd package
+```
+
+Abrir `target/generated-docs/index.html` en el navegador. La documentacion se genera
+automaticamente desde los tests MockMvc en `ApiDocumentationTest`.

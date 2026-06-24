@@ -1,0 +1,4 @@
+# Copia como application-local.properties si necesitas otro usuario local.
+# Contraseña: define DB_PASSWORD en el entorno o dejala vacia (MySQL sin password).
+# PowerShell con password: $env:DB_PASSWORD="tu_password"
+spring.datasource.username=root

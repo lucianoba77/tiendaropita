@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -30,11 +31,12 @@ class PrendaRepositoryTest {
                 .estadoPrenda(EstadoPrenda.NUEVA)
                 .build();
 
-        Prenda guardada = prendaRepository.save(prenda);
+        Prenda guardada = prendaRepository.save(Objects.requireNonNull(prenda));
 
-        assertNotNull(guardada.getId());
+        Long id = guardada.getId();
+        assertNotNull(id);
 
-        Optional<Prenda> recuperada = prendaRepository.findById(guardada.getId());
+        Optional<Prenda> recuperada = prendaRepository.findById(id);
         assertTrue(recuperada.isPresent());
         assertEquals("Saco Vestir", recuperada.get().getDescripcion());
         assertEquals(TipoPrenda.SACO, recuperada.get().getTipoPrenda());
@@ -42,12 +44,13 @@ class PrendaRepositoryTest {
 
     @Test
     void listaTodasLasPrendas() {
-        prendaRepository.save(Prenda.builder()
+        Prenda prenda = Prenda.builder()
                 .descripcion("Camisa Blanca")
                 .precioBase(new BigDecimal("100.50"))
                 .tipoPrenda(TipoPrenda.CAMISA)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
+                .build();
+        prendaRepository.save(Objects.requireNonNull(prenda));
 
         assertTrue(prendaRepository.findAll().size() >= 1);
     }

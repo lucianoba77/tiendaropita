@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Historial de Stock</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="navbar">
+    <a class="brand" th:href="@{/}">Tienda Ropita</a>
+    <nav>
+        <a th:href="@{/tienda/prendas/list}">Prendas</a>
+        <a th:href="@{/tienda/clientes/list}">Clientes</a>
+        <a th:href="@{/tienda/ventas/list}">Ventas</a>
+        <a th:href="@{/tienda/negocio/ganancias}">Ganancias</a>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h1>Historial de Stock</h1>
+        <p>
+            Prenda: <strong th:text="${prenda.descripcion}">Descripcion</strong>
+            — Stock actual: <strong th:text="${stockActual}">0</strong>
+        </p>
+        <table>
+            <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th class="text-right">Cantidad</th>
+                <th>Venta ID</th>
+                <th>Observacion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mov : ${movimientos}">
+                <td th:text="${#temporals.format(mov.fecha, 'dd/MM/yyyy HH:mm')}">fecha</td>
+                <td th:text="${mov.tipo}">TIPO</td>
+                <td class="text-right" th:text="${mov.cantidad}">0</td>
+                <td th:text="${mov.referenciaVentaId != null ? mov.referenciaVentaId : '-'}">-</td>
+                <td th:text="${mov.observacion != null ? mov.observacion : '-'}">-</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(movimientos)}">
+                <td colspan="5">No hay movimientos registrados para esta prenda.</td>
+            </tr>
+            </tbody>
+        </table>
+        <p style="margin-top:18px;">
+            <a class="back" th:href="@{/tienda/prendas/list}">&larr; Volver al listado</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

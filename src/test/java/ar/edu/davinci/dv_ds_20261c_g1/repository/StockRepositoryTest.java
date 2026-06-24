@@ -1,6 +1,7 @@
 package ar.edu.davinci.dv_ds_20261c_g1.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -26,16 +27,24 @@ class StockRepositoryTest {
 
     @Test
     void guardaYRecuperaStockPorPrenda() {
-        Prenda prenda = prendaRepository.save(Prenda.builder()
+        Prenda prendaNueva = Prenda.builder()
                 .descripcion("Campera de Cuero")
                 .precioBase(new BigDecimal("5000.00"))
                 .tipoPrenda(TipoPrenda.CAMPERA)
                 .estadoPrenda(EstadoPrenda.NUEVA)
-                .build());
+                .build();
+        assertNotNull(prendaNueva);
 
-        stockRepository.save(Stock.builder().prenda(prenda).cantidad(12).build());
+        Prenda prenda = prendaRepository.save(prendaNueva);
 
-        Optional<Stock> recuperado = stockRepository.findByPrendaId(prenda.getId());
+        Long prendaId = prenda.getId();
+        assertNotNull(prendaId);
+
+        Stock stock = Stock.builder().prenda(prenda).cantidad(12).build();
+        assertNotNull(stock);
+        stockRepository.save(stock);
+
+        Optional<Stock> recuperado = stockRepository.findByPrendaId(prendaId);
         assertTrue(recuperado.isPresent());
         assertEquals(12, recuperado.get().getCantidad());
     }

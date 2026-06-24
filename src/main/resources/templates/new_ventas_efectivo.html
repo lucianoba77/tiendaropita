@@ -22,8 +22,8 @@
         <p>Selecciona el cliente. Luego podras agregar los items a la venta.</p>
         <form th:action="@{/tienda/ventas/save/efectivo}" method="post">
             <div class="form-group">
-                <label>Cliente</label>
-                <select name="clienteId" required>
+                <label for="clienteId">Cliente</label>
+                <select id="clienteId" name="clienteId" required>
                     <option th:each="cliente : ${clientes}" th:value="${cliente.id}"
                             th:text="${cliente.razonSocial}"></option>
                 </select>

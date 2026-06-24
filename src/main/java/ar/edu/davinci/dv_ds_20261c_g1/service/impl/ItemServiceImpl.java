@@ -27,6 +27,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item get(Long id) throws BusinessException {
+        if (id == null) {
+            throw new BusinessException("El id del item es obligatorio");
+        }
         return itemRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("No existe el item con id " + id));
     }

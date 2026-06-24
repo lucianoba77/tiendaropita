@@ -1,5 +1,7 @@
 package ar.edu.davinci.dv_ds_20261c_g1.service;
 
+import java.util.List;
+
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Prenda;
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Stock;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
@@ -10,20 +12,32 @@ public interface StockService {
 
     Integer cantidadDisponible(Long prendaId);
 
+    Integer stockMinimo(Long prendaId);
+
+    boolean estaBajoMinimo(Long prendaId);
+
+    List<Stock> listarStockBajo();
+
     /**
      * Crea o actualiza el stock de una prenda con la cantidad indicada (valor absoluto).
      */
     Stock establecer(Prenda prenda, Integer cantidad) throws BusinessException;
+
+    Stock establecer(Prenda prenda, Integer cantidad, Integer stockMinimo) throws BusinessException;
 
     /**
      * Descuenta la cantidad vendida; lanza BusinessException si no hay stock suficiente.
      */
     void descontar(Long prendaId, Integer cantidad) throws BusinessException;
 
+    void descontar(Long prendaId, Integer cantidad, Long ventaId) throws BusinessException;
+
     /**
      * Repone unidades al stock de la prenda (por ejemplo al quitar items de una venta).
      */
     void reponer(Long prendaId, Integer cantidad);
+
+    void reponer(Long prendaId, Integer cantidad, Long ventaId);
 
     void eliminarPorPrenda(Long prendaId);
 }

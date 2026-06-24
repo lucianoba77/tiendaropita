@@ -30,6 +30,9 @@ nbdist/
 # ===== VS Code =====
 .vscode/
 
+# ===== Configuracion local (credenciales) =====
+src/main/resources/application-local.properties
+
 # ===== Logs y temporales =====
 *.log
 *.tmp

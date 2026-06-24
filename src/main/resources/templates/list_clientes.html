@@ -39,8 +39,10 @@
                 <td th:text="${cliente.apellido}">Apellido</td>
                 <td class="actions">
                     <a class="btn btn-primary btn-sm" th:href="@{'/tienda/clientes/edit/' + ${cliente.id}}">Editar</a>
-                    <a class="btn btn-danger btn-sm" th:href="@{'/tienda/clientes/delete/' + ${cliente.id}}"
-                       onclick="return confirm('¿Eliminar el cliente?');">Eliminar</a>
+                    <form th:action="@{'/tienda/clientes/delete/' + ${cliente.id}}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('¿Eliminar el cliente?');">Eliminar</button>
+                    </form>
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(listClientes)}">

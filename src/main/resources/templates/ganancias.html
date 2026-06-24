@@ -23,20 +23,43 @@
         <p>Las ganancias del dia son la suma de los totales de todas las ventas de esa fecha.</p>
         <form th:action="@{/tienda/negocio/ganancias}" method="get">
             <div class="form-group">
-                <label>Fecha</label>
-                <input type="date" name="fecha"
-                       th:value="${fecha != null ? #dates.format(fecha, 'yyyy-MM-dd') : ''}" required />
+                <label for="fecha">Fecha</label>
+                <input id="fecha" type="date" name="fecha"
+                       th:value="${fecha != null ? #temporals.format(fecha, 'yyyy-MM-dd') : ''}" required />
             </div>
             <button type="submit" class="btn btn-primary">Calcular</button>
         </form>
     </div>
 
-    <div class="card" th:if="${ganancias != null}">
+    <div class="card" th:if="${resumen != null}">
         <h2>Resultado</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Ganancias del dia</div>
+                <div class="value" th:text="'$ ' + ${#numbers.formatDecimal(resumen.total, 1, 2, 'COMMA')}">$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Cantidad de ventas</div>
+                <div class="value" th:text="${resumen.cantidadVentas}">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total efectivo</div>
+                <div class="value" th:text="'$ ' + ${#numbers.formatDecimal(resumen.totalEfectivo, 1, 2, 'COMMA')}">$ 0,00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total tarjeta</div>
+                <div class="value" th:text="'$ ' + ${#numbers.formatDecimal(resumen.totalTarjeta, 1, 2, 'COMMA')}">$ 0,00</div>
+            </div>
+            <div class="stat-card" th:if="${resumen.prendaMasVendidaDescripcion != null}">
+                <div class="label">Prenda mas vendida</div>
+                <div class="value" style="font-size:1em;"
+                     th:text="${resumen.prendaMasVendidaDescripcion + ' (' + resumen.prendaMasVendidaUnidades + ' u.)'}">
+                    Prenda
+                </div>
+            </div>
+        </div>
         <p>
-            Ganancias del <strong th:text="${#dates.format(fecha, 'dd/MM/yyyy')}">fecha</strong>:
-            <strong style="font-size:1.3em;"
-                    th:text="'$ ' + ${#numbers.formatDecimal(ganancias, 1, 2, 'COMMA')}">$ 0,00</strong>
+            Detalle del <strong th:text="${#temporals.format(fecha, 'dd/MM/yyyy')}">fecha</strong>
         </p>
         <table>
             <thead>

@@ -3,9 +3,8 @@ package ar.edu.davinci.dv_ds_20261c_g1.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,7 @@ class NegocioTest {
 
     @Test
     void calcularGananciasDelDiaSumaLosTotalesDeLasVentasDeEseDia() {
-        Date hoy = Calendar.getInstance().getTime();
+        LocalDate hoy = LocalDate.now();
 
         VentaEfectivo v1 = VentaEfectivo.builder()
                 .fecha(hoy)
@@ -54,10 +53,8 @@ class NegocioTest {
 
     @Test
     void ventasDeOtroDiaNoSeContabilizan() {
-        Date hoy = Calendar.getInstance().getTime();
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -1);
-        Date ayer = cal.getTime();
+        LocalDate hoy = LocalDate.now();
+        LocalDate ayer = hoy.minusDays(1);
 
         VentaEfectivo ventaAyer = VentaEfectivo.builder()
                 .fecha(ayer)

@@ -35,4 +35,7 @@ public class PrendaUpdateRequest {
 
     @PositiveOrZero(message = "El stock debe ser mayor o igual a cero")
     private Integer stock;
+
+    @PositiveOrZero(message = "El stock minimo debe ser mayor o igual a cero")
+    private Integer stockMinimo;
 }

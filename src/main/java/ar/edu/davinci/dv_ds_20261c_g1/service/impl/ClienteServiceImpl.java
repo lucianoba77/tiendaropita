@@ -23,6 +23,9 @@ public class ClienteServiceImpl implements ClienteService {
 
     @Override
     public Cliente get(Long id) throws BusinessException {
+        if (id == null) {
+            throw new BusinessException("El id del cliente es obligatorio");
+        }
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("No existe el cliente con id " + id));
     }
@@ -46,7 +49,9 @@ public class ClienteServiceImpl implements ClienteService {
     @Override
     public void delete(Long id) throws BusinessException {
         Cliente existente = get(id);
-        clienteRepository.delete(existente);
+        if (existente.getId() != null) {
+            clienteRepository.delete(existente);
+        }
     }
 
     private void validar(Cliente cliente) throws BusinessException {

@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -68,19 +66,14 @@ public class Negocio implements Serializable {
      * Ganancias de un dia = total de las ventas cuya fecha coincide con la fecha indicada.
      */
     @Transient
-    public BigDecimal calcularGananciasDelDia(Date fecha) {
+    public BigDecimal calcularGananciasDelDia(LocalDate fecha) {
         if (ventas == null || fecha == null) {
             return BigDecimal.ZERO;
         }
-        LocalDate objetivo = aLocalDate(fecha);
         return ventas.stream()
-                .filter(v -> v.getFecha() != null && aLocalDate(v.getFecha()).equals(objetivo))
+                .filter(v -> v.getFecha() != null && v.getFecha().equals(fecha))
                 .map(Venta::calcularTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private LocalDate aLocalDate(Date date) {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }

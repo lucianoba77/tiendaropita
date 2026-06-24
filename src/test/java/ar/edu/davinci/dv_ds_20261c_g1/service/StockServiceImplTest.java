@@ -1,14 +1,21 @@
 package ar.edu.davinci.dv_ds_20261c_g1.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Stock;
+import ar.edu.davinci.dv_ds_20261c_g1.domain.TipoMovimientoStock;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.StockRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.impl.StockServiceImpl;
@@ -26,12 +34,22 @@ class StockServiceImplTest {
     @Mock
     private StockRepository stockRepository;
 
+    @Mock
+    private MovimientoStockService movimientoStockService;
+
     @InjectMocks
     private StockServiceImpl stockService;
+
+    @BeforeEach
+    void configurarMovimientos() throws BusinessException {
+        lenient().doNothing().when(movimientoStockService).registrar(
+                anyLong(), anyInt(), any(TipoMovimientoStock.class), any(), isNull());
+    }
 
     @Test
     void descontarReduceElStockCuandoHaySuficiente() throws BusinessException {
         Stock stock = Stock.builder().id(1L).cantidad(10).build();
+        assertNotNull(stock);
         when(stockRepository.findByPrendaId(1L)).thenReturn(Optional.of(stock));
 
         stockService.descontar(1L, 4);
@@ -46,7 +64,8 @@ class StockServiceImplTest {
         when(stockRepository.findByPrendaId(1L)).thenReturn(Optional.of(stock));
 
         assertThrows(BusinessException.class, () -> stockService.descontar(1L, 5));
-        verify(stockRepository, never()).save(any());
+        verify(stockRepository, times(1)).findByPrendaId(1L);
+        verifyNoMoreInteractions(stockRepository);
     }
 
     @Test
@@ -59,6 +78,7 @@ class StockServiceImplTest {
     @Test
     void reponerAumentaElStockExistente() {
         Stock stock = Stock.builder().id(1L).cantidad(3).build();
+        assertNotNull(stock);
         when(stockRepository.findByPrendaId(1L)).thenReturn(Optional.of(stock));
 
         stockService.reponer(1L, 5);
