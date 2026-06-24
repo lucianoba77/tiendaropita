@@ -78,7 +78,7 @@
                 <label>Prenda</label>
                 <select name="prendaId" required>
                     <option th:each="prenda : ${prendas}" th:value="${prenda.id}"
-                            th:text="${prenda.descripcion + ' (' + #numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA') + ')'}"></option>
+                            th:text="${prenda.descripcion + ' (' + #numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA') + ') - stock: ' + (stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0)}"></option>
                 </select>
             </div>
             <div class="form-group">

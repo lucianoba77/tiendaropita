@@ -2,8 +2,9 @@ package ar.edu.davinci.dv_ds_20261c_g1.controller.web;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,20 +19,22 @@ import ar.edu.davinci.dv_ds_20261c_g1.domain.VentaTarjeta;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.service.ClienteService;
 import ar.edu.davinci.dv_ds_20261c_g1.service.PrendaService;
+import ar.edu.davinci.dv_ds_20261c_g1.service.StockService;
 import ar.edu.davinci.dv_ds_20261c_g1.service.VentaService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/tienda/ventas")
+@RequiredArgsConstructor
 public class VentaController {
 
-    @Autowired
-    private VentaService ventaService;
+    private final VentaService ventaService;
 
-    @Autowired
-    private ClienteService clienteService;
+    private final ClienteService clienteService;
 
-    @Autowired
-    private PrendaService prendaService;
+    private final PrendaService prendaService;
+
+    private final StockService stockService;
 
     @GetMapping("/list")
     public String list(Model model) {
@@ -41,8 +44,12 @@ public class VentaController {
 
     @GetMapping("/show/{id}")
     public String show(@PathVariable Long id, Model model) throws BusinessException {
+        var prendas = prendaService.list();
+        Map<Long, Integer> stockPorPrenda = new HashMap<>();
+        prendas.forEach(p -> stockPorPrenda.put(p.getId(), stockService.cantidadDisponible(p.getId())));
         model.addAttribute("venta", ventaService.get(id));
-        model.addAttribute("prendas", prendaService.list());
+        model.addAttribute("prendas", prendas);
+        model.addAttribute("stockPorPrenda", stockPorPrenda);
         return "show_ventas";
     }
 

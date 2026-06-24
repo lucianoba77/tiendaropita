@@ -2,7 +2,6 @@ package ar.edu.davinci.dv_ds_20261c_g1.controller.rest;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -23,51 +22,66 @@ import ar.edu.davinci.dv_ds_20261c_g1.domain.Prenda;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.mapper.PrendaMapper;
 import ar.edu.davinci.dv_ds_20261c_g1.service.PrendaService;
+import ar.edu.davinci.dv_ds_20261c_g1.service.StockService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/prendas")
+@RequiredArgsConstructor
 public class PrendaControllerRest {
 
-    @Autowired
-    private PrendaService prendaService;
+    private final PrendaService prendaService;
 
-    @Autowired
-    private PrendaMapper prendaMapper;
+    private final StockService stockService;
+
+    private final PrendaMapper prendaMapper;
 
     @GetMapping("/all")
     public List<PrendaResponse> getAll() {
-        return prendaMapper.toResponseList(prendaService.list());
+        return prendaService.list().stream()
+                .map(this::toResponseConStock)
+                .toList();
     }
 
     @GetMapping
     public Page<PrendaResponse> getPaged(Pageable pageable) {
-        return prendaService.list(pageable).map(prendaMapper::toResponse);
+        return prendaService.list(pageable).map(this::toResponseConStock);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PrendaResponse> getById(@PathVariable Long id) throws BusinessException {
         Prenda prenda = prendaService.get(id);
-        return ResponseEntity.ok(prendaMapper.toResponse(prenda));
+        return ResponseEntity.ok(toResponseConStock(prenda));
     }
 
     @PostMapping
     public ResponseEntity<PrendaResponse> create(@Valid @RequestBody PrendaInsertRequest request)
             throws BusinessException {
         Prenda prenda = prendaService.save(prendaMapper.toEntity(request));
-        return ResponseEntity.status(HttpStatus.CREATED).body(prendaMapper.toResponse(prenda));
+        stockService.establecer(prenda, request.getStockInicial());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponseConStock(prenda));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PrendaResponse> update(@PathVariable Long id,
             @Valid @RequestBody PrendaUpdateRequest request) throws BusinessException {
         Prenda prenda = prendaService.update(id, prendaMapper.toEntity(request));
-        return ResponseEntity.ok(prendaMapper.toResponse(prenda));
+        if (request.getStock() != null) {
+            stockService.establecer(prenda, request.getStock());
+        }
+        return ResponseEntity.ok(toResponseConStock(prenda));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) throws BusinessException {
         prendaService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private PrendaResponse toResponseConStock(Prenda prenda) {
+        PrendaResponse response = prendaMapper.toResponse(prenda);
+        response.setStockDisponible(stockService.cantidadDisponible(prenda.getId()));
+        return response;
     }
 }

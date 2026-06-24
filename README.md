@@ -18,10 +18,7 @@ Mapeo de los puntos pedidos por la catedra (Diseno de Sistemas - ACN5AV):
 | 2 | Vista de Venta: cargar venta Efectivo y Tarjeta; agregar, modificar y quitar items | Completo |
 | 3 | Entidad `Negocio`/Tienda con lista de ventas y "calcular ganancias de un dia" | Completo |
 | 4 | `Prenda` con `EstadoPrenda` (Nueva, Promocion, Liquidacion) resuelto con Strategy | Completo |
-| 5 | Entidad para administrar el **stock** de cada producto; al vender se descuenta el stock | **Pendiente** (ver roadmap) |
-
-> El Punto 5 (gestion de stock) es la mejora prioritaria identificada: requiere una entidad
-> de stock por prenda y descontar la cantidad vendida al confirmar una venta.
+| 5 | Entidad para administrar el **stock** de cada producto; al vender se descuenta el stock | Completo |
 
 ## Stack tecnologico
 
@@ -42,12 +39,32 @@ Mapeo de los puntos pedidos por la catedra (Diseno de Sistemas - ACN5AV):
   - `VentaEfectivo`: sin recargo; descuento del 15% si el bruto supera $1000, sino 10%.
   - `VentaTarjeta`: recargo = `cantidadCuotas * coeficiente * importeBruto`; sin descuento.
 
+## Gestion de stock (Punto 5)
+
+Administra la cantidad disponible de cada prenda y la mantiene consistente con las ventas:
+
+- **Entidad dedicada** `Stock` con relacion 1 a 1 a `Prenda` (tabla `stocks`, columnas `stk_*`).
+- **`StockService`** centraliza la logica: `descontar` valida que haya stock suficiente y lanza
+  `BusinessException` si no alcanza; `reponer` devuelve unidades; `establecer` fija el stock; y
+  `cantidadDisponible` consulta el disponible.
+- **Descuento automatico al vender** (integrado en `VentaService`):
+  - Alta de venta con items (REST) y `addItem`: descuentan stock.
+  - `updateItem`: ajusta el stock por la diferencia (descuenta o repone segun aumente/baje la cantidad).
+  - `removeItem` y baja de venta: reponen el stock de los items.
+- **UI**: el stock se carga al crear/editar una prenda, se muestra en el listado de prendas y junto a
+  cada prenda al agregar items en una venta.
+- **API REST**: `GET/PUT /api/prendas/{id}/stock` y `POST /api/prendas/{id}/stock/reponer`; ademas
+  `PrendaResponse` incluye `stockDisponible`.
+- **Tests**: `StockTest` (dominio), `StockRepositoryTest` (persistencia con H2) y `StockServiceImplTest`
+  (validacion de stock insuficiente y descuento/reposicion con Mockito).
+
 ## Decisiones de diseno y buenas practicas
 
 Estas decisiones van mas alla del minimo pedido y refuerzan la calidad del diseno del sistema:
 
 - **Arquitectura en capas con dependencias unidireccionales**: `controller -> service -> repository -> domain`. La capa web (Thymeleaf) y la capa REST estan separadas (`controller.web` vs `controller.rest`), de modo que un cambio de UI no impacta en la API.
 - **Programacion contra interfaces (DIP de SOLID)**: cada servicio expone una interfaz (`PrendaService`, `VentaService`, etc.) con su implementacion en `service.impl`. Facilita testear con dobles y sustituir implementaciones.
+- **Inyeccion de dependencias por constructor** (con `@RequiredArgsConstructor` de Lombok y campos `final`): las dependencias quedan inmutables y explicitas, evita el acoplamiento al contenedor de `@Autowired` por campo y permite instanciar las clases en tests sin Spring.
 - **DTOs + MapStruct**: las entidades JPA nunca se exponen directamente en la API; se mapean a Request/Response con MapStruct, evitando fugas del modelo de persistencia y problemas de serializacion (lazy loading, ciclos).
 - **Validacion declarativa**: los Request usan Jakarta Bean Validation (`@NotNull`, `@Positive`, etc.) y se validan con `@Valid` en los controladores, separando la validacion de formato de la validacion de negocio.
 - **Manejo centralizado de errores**: `GlobalRestExceptionHandler` (`@RestControllerAdvice`) traduce `BusinessException` y errores de validacion a respuestas HTTP coherentes (400 + cuerpo JSON), evitando `try/catch` repetidos.
@@ -63,7 +80,6 @@ Estas decisiones van mas alla del minimo pedido y refuerzan la calidad del disen
 
 Mejoras identificadas para una proxima iteracion, ordenadas por impacto en el diseno:
 
-0. **Gestion de stock (Punto 5 del TP)** — *prioritaria*: agregar una entidad de stock asociada a la `Prenda` (cantidad disponible) y descontar la cantidad vendida al confirmar la venta, validando que no se venda mas de lo disponible (`BusinessException` si falta stock). Es un requisito explicito de la entrega.
 1. **Migrar `java.util.Date` a `java.time.LocalDate`/`LocalDateTime`** en `Venta` y filtros de fecha (API moderna, inmutable y sin zona horaria ambigua).
 2. **Versionado de esquema con Flyway o Liquibase** en lugar de `ddl-auto=update`, para migraciones reproducibles y controladas.
 3. **Documentacion de la API con OpenAPI/Swagger** (`springdoc-openapi`) para explorar y probar los endpoints desde el navegador.

@@ -1,6 +1,5 @@
 package ar.edu.davinci.dv_ds_20261c_g1.domain;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -24,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @NoArgsConstructor
 @SuperBuilder
-public class VentaEfectivo extends Venta implements Serializable {
+public class VentaEfectivo extends Venta {
 
     private static final long serialVersionUID = 7549753306871297144L;
 

@@ -14,6 +14,17 @@ INSERT INTO prendas (prd_descripcion, prd_precio_base, prd_tipo_prenda, prd_esta
 ('Bufanda de Lana',          850.75,  'BUFANDA',  'PROMOCION',   100.00),
 ('Media Deportiva',          300.00,  'MEDIA',    'NUEVA',       NULL);
 
+-- ------------------------- Stock por prenda --------------------------
+INSERT INTO stocks (stk_prd_id, stk_cantidad) VALUES
+(1, 50),
+(2, 30),
+(3, 15),
+(4, 20),
+(5, 10),
+(6, 8),
+(7, 25),
+(8, 100);
+
 -- ------------------------- Clientes ----------------------------------
 INSERT INTO clientes (cli_nombre, cli_apellido) VALUES
 ('Juan',   'Perez'),

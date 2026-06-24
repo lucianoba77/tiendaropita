@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,19 +17,21 @@ import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.VentaRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.ClienteService;
 import ar.edu.davinci.dv_ds_20261c_g1.service.PrendaService;
+import ar.edu.davinci.dv_ds_20261c_g1.service.StockService;
 import ar.edu.davinci.dv_ds_20261c_g1.service.VentaService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class VentaServiceImpl implements VentaService {
 
-    @Autowired
-    private VentaRepository ventaRepository;
+    private final VentaRepository ventaRepository;
 
-    @Autowired
-    private ClienteService clienteService;
+    private final ClienteService clienteService;
 
-    @Autowired
-    private PrendaService prendaService;
+    private final PrendaService prendaService;
+
+    private final StockService stockService;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,6 +70,13 @@ public class VentaServiceImpl implements VentaService {
     @Transactional
     public void delete(Long id) throws BusinessException {
         Venta venta = get(id);
+        if (venta.getItems() != null) {
+            for (Item item : venta.getItems()) {
+                if (item.getPrenda() != null && item.getPrenda().getId() != null) {
+                    stockService.reponer(item.getPrenda().getId(), item.getCantidad());
+                }
+            }
+        }
         ventaRepository.delete(venta);
     }
 
@@ -80,6 +88,7 @@ public class VentaServiceImpl implements VentaService {
         }
         Venta venta = get(ventaId);
         Prenda prenda = prendaService.get(prendaId);
+        stockService.descontar(prendaId, cantidad);
         Item item = Item.builder()
                 .prenda(prenda)
                 .cantidad(cantidad)
@@ -96,6 +105,16 @@ public class VentaServiceImpl implements VentaService {
         }
         Venta venta = get(ventaId);
         Item item = buscarItem(venta, itemId);
+        Long prendaId = (item.getPrenda() != null) ? item.getPrenda().getId() : null;
+        int cantidadAnterior = (item.getCantidad() != null) ? item.getCantidad() : 0;
+        int diferencia = cantidad - cantidadAnterior;
+        if (prendaId != null) {
+            if (diferencia > 0) {
+                stockService.descontar(prendaId, diferencia);
+            } else if (diferencia < 0) {
+                stockService.reponer(prendaId, -diferencia);
+            }
+        }
         item.setCantidad(cantidad);
         return ventaRepository.save(venta);
     }
@@ -105,6 +124,9 @@ public class VentaServiceImpl implements VentaService {
     public Venta removeItem(Long ventaId, Long itemId) throws BusinessException {
         Venta venta = get(ventaId);
         Item item = buscarItem(venta, itemId);
+        if (item.getPrenda() != null && item.getPrenda().getId() != null) {
+            stockService.reponer(item.getPrenda().getId(), item.getCantidad());
+        }
         venta.removeItem(item);
         return ventaRepository.save(venta);
     }
@@ -143,6 +165,7 @@ public class VentaServiceImpl implements VentaService {
                     throw new BusinessException("La cantidad de cada item debe ser mayor a cero");
                 }
                 Prenda prenda = prendaService.get(item.getPrenda().getId());
+                stockService.descontar(prenda.getId(), item.getCantidad());
                 item.setPrenda(prenda);
                 item.setVenta(venta);
                 itemsResueltos.add(item);

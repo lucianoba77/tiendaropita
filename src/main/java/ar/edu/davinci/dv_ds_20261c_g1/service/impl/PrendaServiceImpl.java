@@ -2,7 +2,6 @@ package ar.edu.davinci.dv_ds_20261c_g1.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,12 +10,16 @@ import ar.edu.davinci.dv_ds_20261c_g1.domain.Prenda;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.PrendaRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.PrendaService;
+import ar.edu.davinci.dv_ds_20261c_g1.service.StockService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class PrendaServiceImpl implements PrendaService {
 
-    @Autowired
-    private PrendaRepository prendaRepository;
+    private final PrendaRepository prendaRepository;
+
+    private final StockService stockService;
 
     @Override
     public List<Prenda> list() {
@@ -56,6 +59,7 @@ public class PrendaServiceImpl implements PrendaService {
     @Override
     public void delete(Long id) throws BusinessException {
         Prenda existente = get(id);
+        stockService.eliminarPorPrenda(id);
         prendaRepository.delete(existente);
     }
 

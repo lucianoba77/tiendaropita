@@ -5,19 +5,19 @@ import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Venta;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.VentaRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.NegocioService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class NegocioServiceImpl implements NegocioService {
 
-    @Autowired
-    private VentaRepository ventaRepository;
+    private final VentaRepository ventaRepository;
 
     @Override
     @Transactional(readOnly = true)

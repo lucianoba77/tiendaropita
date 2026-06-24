@@ -11,6 +11,7 @@ DROP TABLE IF EXISTS items;
 DROP TABLE IF EXISTS ventas_tarjeta;
 DROP TABLE IF EXISTS ventas_efectivo;
 DROP TABLE IF EXISTS ventas;
+DROP TABLE IF EXISTS stocks;
 DROP TABLE IF EXISTS prendas;
 DROP TABLE IF EXISTS clientes;
 DROP TABLE IF EXISTS negocios;
@@ -25,6 +26,16 @@ CREATE TABLE prendas (
     prd_estado_prenda   VARCHAR(255) DEFAULT NULL,
     prd_valor_promocion DECIMAL(19,2) DEFAULT NULL,
     PRIMARY KEY (prd_id)
+);
+
+-- ------------------------- Stock (1 a 1 con Prenda) ------------------
+CREATE TABLE stocks (
+    stk_id       BIGINT NOT NULL AUTO_INCREMENT,
+    stk_prd_id   BIGINT NOT NULL,
+    stk_cantidad INT    NOT NULL DEFAULT 0,
+    PRIMARY KEY (stk_id),
+    CONSTRAINT uq_stocks_prenda UNIQUE (stk_prd_id),
+    CONSTRAINT fk_stocks_prenda FOREIGN KEY (stk_prd_id) REFERENCES prendas (prd_id)
 );
 
 -- ------------------------- Clientes ----------------------------------

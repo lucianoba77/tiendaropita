@@ -3,7 +3,6 @@ package ar.edu.davinci.dv_ds_20261c_g1.controller.rest;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,16 +29,16 @@ import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.mapper.VentaMapper;
 import ar.edu.davinci.dv_ds_20261c_g1.service.VentaService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/ventas")
+@RequiredArgsConstructor
 public class VentaControllerRest {
 
-    @Autowired
-    private VentaService ventaService;
+    private final VentaService ventaService;
 
-    @Autowired
-    private VentaMapper ventaMapper;
+    private final VentaMapper ventaMapper;
 
     @GetMapping("/all")
     public List<VentaResponse> getAll() {

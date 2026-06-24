@@ -32,6 +32,7 @@
                 <th>Estado</th>
                 <th class="text-right">Precio Base</th>
                 <th class="text-right">Precio Venta</th>
+                <th class="text-right">Stock</th>
                 <th>Acciones</th>
             </tr>
             </thead>
@@ -47,6 +48,7 @@
                 </td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(prenda.precioBase, 1, 2, 'COMMA')}">0,00</td>
                 <td class="text-right" th:text="${#numbers.formatDecimal(prenda.precioVenta(), 1, 2, 'COMMA')}">0,00</td>
+                <td class="text-right" th:text="${stockPorPrenda != null ? stockPorPrenda.get(prenda.id) : 0}">0</td>
                 <td class="actions">
                     <a class="btn btn-primary btn-sm" th:href="@{'/tienda/prendas/edit/' + ${prenda.id}}">Editar</a>
                     <a class="btn btn-danger btn-sm" th:href="@{'/tienda/prendas/delete/' + ${prenda.id}}"
@@ -54,7 +56,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(listPrendas)}">
-                <td colspan="7">No hay prendas cargadas.</td>
+                <td colspan="8">No hay prendas cargadas.</td>
             </tr>
             </tbody>
         </table>

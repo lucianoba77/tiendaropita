@@ -48,6 +48,10 @@
                 <label>Valor Promocion (solo para estado PROMOCION)</label>
                 <input type="number" step="0.01" min="0" th:field="*{valorPromocion}" />
             </div>
+            <div class="form-group">
+                <label>Stock disponible</label>
+                <input type="number" step="1" min="0" name="stock" th:value="${stockActual}" />
+            </div>
             <div class="actions">
                 <button type="submit" class="btn btn-success">Actualizar</button>
                 <a class="btn btn-light" th:href="@{/tienda/prendas/list}">Cancelar</a>

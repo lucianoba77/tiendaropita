@@ -2,19 +2,19 @@ package ar.edu.davinci.dv_ds_20261c_g1.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Cliente;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.ClienteRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.ClienteService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ClienteServiceImpl implements ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
     @Override
     public List<Cliente> list() {

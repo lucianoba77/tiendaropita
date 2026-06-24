@@ -20,6 +20,7 @@ public interface PrendaMapper {
     Prenda toEntity(PrendaUpdateRequest request);
 
     @Mapping(target = "precioVenta", expression = "java(prenda.precioVenta())")
+    @Mapping(target = "stockDisponible", ignore = true)
     PrendaResponse toResponse(Prenda prenda);
 
     List<PrendaResponse> toResponseList(List<Prenda> prendas);

@@ -1,6 +1,5 @@
 package ar.edu.davinci.dv_ds_20261c_g1.controller.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,13 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Cliente;
 import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.service.ClienteService;
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/tienda/clientes")
+@RequiredArgsConstructor
 public class ClienteController {
 
-    @Autowired
-    private ClienteService clienteService;
+    private final ClienteService clienteService;
 
     @GetMapping("/list")
     public String list(Model model) {

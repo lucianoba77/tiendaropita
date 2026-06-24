@@ -2,7 +2,6 @@ package ar.edu.davinci.dv_ds_20261c_g1.service.impl;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ar.edu.davinci.dv_ds_20261c_g1.domain.Item;
@@ -11,15 +10,15 @@ import ar.edu.davinci.dv_ds_20261c_g1.exceptions.BusinessException;
 import ar.edu.davinci.dv_ds_20261c_g1.repository.ItemRepository;
 import ar.edu.davinci.dv_ds_20261c_g1.service.ItemService;
 import ar.edu.davinci.dv_ds_20261c_g1.service.PrendaService;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
-    @Autowired
-    private ItemRepository itemRepository;
+    private final ItemRepository itemRepository;
 
-    @Autowired
-    private PrendaService prendaService;
+    private final PrendaService prendaService;
 
     @Override
     public List<Item> list() {

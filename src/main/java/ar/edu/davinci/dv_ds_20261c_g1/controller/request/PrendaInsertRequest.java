@@ -32,4 +32,7 @@ public class PrendaInsertRequest {
     private EstadoPrenda estadoPrenda;
 
     private BigDecimal valorPromocion;
+
+    @PositiveOrZero(message = "El stock inicial debe ser mayor o igual a cero")
+    private Integer stockInicial;
 }

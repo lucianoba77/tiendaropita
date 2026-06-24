@@ -22,4 +22,5 @@ public class PrendaResponse {
     private EstadoPrenda estadoPrenda;
     private BigDecimal valorPromocion;
     private BigDecimal precioVenta;
+    private Integer stockDisponible;
 }

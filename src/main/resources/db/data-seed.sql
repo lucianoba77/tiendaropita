@@ -12,6 +12,16 @@ INSERT IGNORE INTO prendas (prd_id, prd_descripcion, prd_precio_base, prd_tipo_p
 (7, 'Bufanda de Lana', 850.75, 'BUFANDA', 'PROMOCION', 100.00),
 (8, 'Media Deportiva', 300.00, 'MEDIA', 'NUEVA', NULL);
 
+INSERT IGNORE INTO stocks (stk_id, stk_prd_id, stk_cantidad) VALUES
+(1, 1, 50),
+(2, 2, 30),
+(3, 3, 15),
+(4, 4, 20),
+(5, 5, 10),
+(6, 6, 8),
+(7, 7, 25),
+(8, 8, 100);
+
 INSERT IGNORE INTO clientes (cli_id, cli_nombre, cli_apellido) VALUES
 (1, 'Juan', 'Perez'),
 (2, 'Maria', 'Gomez'),
